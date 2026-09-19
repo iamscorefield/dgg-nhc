@@ -37,6 +37,7 @@ interface TripartitePlacement {
   subdomainHandle: string;
   companyName: string;
   roleTitle: string;
+  internTier: string;
   trialDurationMonths: number;
   contractTerm: string;
   preAgreedStipend: number;
@@ -92,7 +93,6 @@ export default function AdminStartupsAndClearinghousePage() {
     setLoading(true);
 
     try {
-      // 1. Fetch base tables in parallel without complex joins
       const [
         { data: rawPlacements, error: plError },
         { data: rawInterns, error: internError }
@@ -113,14 +113,12 @@ export default function AdminStartupsAndClearinghousePage() {
       const validPlacements = rawPlacements || [];
       const validInterns = rawInterns || [];
 
-      // 2. Extract unique entity IDs for lookup
       const startupIds = Array.from(new Set(validPlacements.map((p: any) => p.startup_id).filter(Boolean)));
       const internUserIds = Array.from(new Set([
         ...validPlacements.map((p: any) => p.intern_id),
         ...validInterns.map((i: any) => i.id)
       ].filter(Boolean)));
 
-      // 3. Fetch supporting profile rows in parallel
       const [
         { data: startupsData },
         { data: profilesData }
@@ -137,7 +135,6 @@ export default function AdminStartupsAndClearinghousePage() {
       const profileMap = new Map((profilesData || []).map((p: any) => [p.id, p]));
       const internProfileMap = new Map(validInterns.map((i: any) => [i.id, i]));
 
-      // 4. Map Placements cleanly
       const mappedPlacements: TripartitePlacement[] = validPlacements.map((p: any) => {
         const profile = profileMap.get(p.intern_id);
         const internProfile = internProfileMap.get(p.intern_id);
@@ -169,7 +166,6 @@ export default function AdminStartupsAndClearinghousePage() {
         };
       });
 
-      // 5. Map Intern Roster cleanly
       const mappedInterns: ManagedIntern[] = validInterns.map((i: any) => {
         const user = profileMap.get(i.id);
         return {
@@ -198,7 +194,6 @@ export default function AdminStartupsAndClearinghousePage() {
     loadClearinghouseData();
   }, []);
 
-  // Admin Clears & Authorizes the Tripartite Match
   const handleAuthorizeMatch = async (placementId: string) => {
     const { error } = await supabase
       .from('placements')
@@ -207,7 +202,7 @@ export default function AdminStartupsAndClearinghousePage() {
         pipeline_stage: 'IN_TRIAL',
         terms_agreed_by_startup: true,
         terms_agreed_by_intern: true
-      })
+      } as any)
       .eq('id', placementId);
 
     if (error) {
@@ -223,7 +218,6 @@ export default function AdminStartupsAndClearinghousePage() {
     setTimeout(() => setActionSuccessNotice(null), 3500);
   };
 
-  // Open Candidate Evaluation Desk
   const openEvaluationModal = (candidate: ManagedIntern) => {
     setEvalTargetIntern(candidate);
     setEvalTier(candidate.tier);
@@ -231,7 +225,6 @@ export default function AdminStartupsAndClearinghousePage() {
     setShowEvalModal(true);
   };
 
-  // Admin Saves Evaluated Tier and Sprint Attendance Score
   const handleSaveEvaluation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!evalTargetIntern) return;
@@ -242,7 +235,7 @@ export default function AdminStartupsAndClearinghousePage() {
       .update({
         tier: evalTier,
         sprint_attendance_score: evalAttendance,
-      })
+      } as any)
       .eq('id', evalTargetIntern.id);
 
     setSavingEvaluation(false);
@@ -267,7 +260,6 @@ export default function AdminStartupsAndClearinghousePage() {
     setTimeout(() => setActionSuccessNotice(null), 4000);
   };
 
-  // Direct Placement to DGG Internal Projects
   const handleDirectAdminAssign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedInternId) return;
@@ -298,7 +290,7 @@ export default function AdminStartupsAndClearinghousePage() {
         is_direct_admin_placement: true,
         status: 'ACTIVE',
         pipeline_stage: 'IN_TRIAL',
-      })
+      } as any)
       .select()
       .single();
 
@@ -333,7 +325,6 @@ export default function AdminStartupsAndClearinghousePage() {
     setTimeout(() => setActionSuccessNotice(null), 3500);
   };
 
-  // Admin Submits Verified Supervisor Endorsement
   const handleSubmitAdminReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetPlacement) return;
@@ -351,7 +342,7 @@ export default function AdminStartupsAndClearinghousePage() {
       technical_score: adminRating,
       written_endorsement: `${adminReviewTitle ? adminReviewTitle + ': ' : ''}${adminReviewComment}`,
       is_public_on_dossier: true,
-    });
+    } as any);
 
     setSubmittingReview(false);
 
@@ -388,7 +379,6 @@ export default function AdminStartupsAndClearinghousePage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto font-sans">
-      {/* Banner */}
       <div className="bg-gradient-to-r from-[#512d7c] via-[#3a1d5a] to-[#ff7a00] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="space-y-2 relative z-10 max-w-2xl">
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
@@ -442,7 +432,6 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* Navigation Tabs */}
       <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 text-xs font-mono overflow-x-auto">
         <button
           type="button"
@@ -497,15 +486,8 @@ export default function AdminStartupsAndClearinghousePage() {
         </button>
       </div>
 
-      {/* TAB 1: PENDING TRIPARTITE CLEARANCE GATE */}
       {activeTab === 'CLEARANCE_GATE' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-slate-400 font-bold uppercase">
-              Pre-Sealed Contracts Awaiting Final Admin Authorization
-            </span>
-          </div>
-
           {pendingClearance.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-xs text-slate-400 font-mono">
               Zero pending contracts. All extended enterprise offers are cleared or in negotiation.
@@ -586,7 +568,6 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* TAB 2: ACTIVE TRIPARTITE PLACEMENTS */}
       {activeTab === 'ACTIVE_PLACEMENTS' && (
         <div className="space-y-4">
           {activeSprints.length === 0 ? (
@@ -662,7 +643,6 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* TAB 3: CANDIDATE TIERS & ATTENDANCE SCORE GOVERNANCE */}
       {activeTab === 'EVALUATE_INTERNS' && (
         <div className="space-y-4">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
@@ -728,15 +708,8 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* TAB 4: DIRECT DGG INTERNAL PLACEMENTS */}
       {activeTab === 'DIRECT_ADMIN' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-slate-400 font-bold uppercase">
-              Interns Assigned Directly Under Master Admin Supervision
-            </span>
-          </div>
-
           {directAdminPlacements.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-xs text-slate-400 font-mono">
               Zero direct internal placements created yet. Click "+ Direct DGG Placement" to assign an apprentice.
@@ -793,7 +766,6 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* MODAL 1: CANDIDATE EVALUATION & ATTENDANCE SCORING MODAL */}
       {showEvalModal && evalTargetIntern && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200 text-xs">
@@ -863,22 +835,6 @@ export default function AdminStartupsAndClearinghousePage() {
                     ))}
                   </div>
                 </div>
-                <span className="text-[10px] text-slate-400 block pt-1">
-                  This exact score stamps the first badge on {evalTargetIntern.name}’s public portfolio dossier.
-                </span>
-              </div>
-
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1 font-mono text-[11px]">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Resulting Metric 1:</span>
-                  <span className="font-bold text-emerald-700">{evalAttendance} Sprint Attendance</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Resulting Metric 4:</span>
-                  <span className="font-bold text-slate-900">
-                    {evalTier.includes('Fellow') ? '1 MO' : evalTier.includes('Associate') ? '2 MO' : '3 MO'} Trial Runway
-                  </span>
-                </div>
               </div>
 
               <button
@@ -894,7 +850,6 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* MODAL 2: DIRECT DGG INTERNAL ASSIGNMENT DESK */}
       {showDirectModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200 text-xs">
@@ -969,10 +924,6 @@ export default function AdminStartupsAndClearinghousePage() {
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                Direct Admin placements instantly unlock workspace punch cards and establish Master Admin as the official reviewing supervisor.
-              </p>
-
               <button
                 type="submit"
                 disabled={assigningAdmin}
@@ -986,7 +937,6 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
-      {/* MODAL 3: ADMIN SUPERVISOR REVIEW & ENDORSEMENT SUBMISSION */}
       {showReviewModal && targetPlacement && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200 text-xs">
@@ -1052,10 +1002,6 @@ export default function AdminStartupsAndClearinghousePage() {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
                 />
               </div>
-
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                This endorsement carries the official DGG Master Operations stamp and will be pinned under the candidate's verified reviews section.
-              </p>
 
               <button
                 type="submit"

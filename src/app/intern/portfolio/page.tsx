@@ -93,10 +93,10 @@ const TEMPLATES: TemplateOption[] = [
   {
     id: 5,
     name: 'Neo-Brutalist Agency',
-    tagline: 'Cream canvas with thick offset solid black borders (Screenshot 2)',
+    tagline: 'Cream canvas with thick offset solid black borders',
     badge: 'MODERN EDGY',
     previewBg: 'bg-[#fefce8] text-black border-4 border-black shadow-[4px_4px_0px_0px_#000]',
-    description: 'The exact high-impact design from Screenshot 2 with heavy black borders and punchy badges.',
+    description: 'High-impact design with heavy black borders and punchy badges.',
   },
 ];
 
@@ -109,7 +109,6 @@ export default function InternPortfolioStudioPage() {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Candidate Data State
   const [subdomain, setSubdomain] = useState('irene-obioha-7112');
   const [profile, setProfile] = useState({
     name: 'Irene Obioha',
@@ -125,7 +124,6 @@ export default function InternPortfolioStudioPage() {
     verifiedCertId: 'DGG-IN-56722734',
   });
 
-  // Masking Helper for the studio preview
   const maskEmail = (email: string) => {
     if (!email || !email.includes('@')) return 'verified-candidate@dgg.link';
     const [local, domain] = email.split('@');
@@ -147,7 +145,7 @@ export default function InternPortfolioStudioPage() {
 
         const { data: intern } = await supabase
           .from('intern_profiles')
-          .select('subdomain_handle, tier, specialization_track, institution, bio, ongoing_assignments, portfolio_template, verified_cert_id')
+          .select('*')
           .eq('id', authData.user.id)
           .maybeSingle();
 
@@ -160,7 +158,7 @@ export default function InternPortfolioStudioPage() {
           setProfile({
             name: `${prof?.first_name || 'Apprentice'} ${prof?.last_name || ''}`.trim(),
             tier: intern.tier || 'Associate (Intermediate: 2-month trial)',
-            nhcId: intern.nhc_id || 'DGG-NHC-2026-7112',
+            nhcId: (intern as any).nhc_id || 'DGG-NHC-2026-7112',
             track: intern.specialization_track || 'TRK-02: Data Analytics',
             institution: intern.institution || 'Partner University',
             rawEmail: prof?.email || 'misterscorefield@gmail.com',
@@ -183,7 +181,7 @@ export default function InternPortfolioStudioPage() {
     if (authData?.user) {
       await supabase
         .from('intern_profiles')
-        .update({ portfolio_template: activeTemplate })
+        .update({ portfolio_template: activeTemplate } as any)
         .eq('id', authData.user.id);
     }
 
@@ -203,7 +201,7 @@ export default function InternPortfolioStudioPage() {
 
   if (loading) {
     return (
-      <div className="h-96 flex items-center justify-center font-mono-tech text-xs">
+      <div className="h-96 flex items-center justify-center font-mono text-xs">
         <span className="animate-pulse text-[#512d7c] font-bold">
           LOADING PORTFOLIO STUDIO & PREVIEW WIREFRAMES...
         </span>
@@ -214,7 +212,6 @@ export default function InternPortfolioStudioPage() {
   const activeTemplateObj = TEMPLATES.find((t) => t.id === activeTemplate) || TEMPLATES[4];
   const hasUnsavedChanges = activeTemplate !== savedTemplate;
 
-  // Viewport Dynamic Styles for Preview
   const previewCanvas =
     activeTemplate === 1
       ? 'bg-[#04080e] text-emerald-300 font-mono'
@@ -224,7 +221,7 @@ export default function InternPortfolioStudioPage() {
       ? 'bg-[#08020f] text-slate-100 font-sans'
       : activeTemplate === 4
       ? 'bg-[#ffffff] text-slate-800 font-sans'
-      : 'bg-[#fefce8] text-black font-sans'; // Theme 5 (Screenshot 2)
+      : 'bg-[#fefce8] text-black font-sans';
 
   const previewCard =
     activeTemplate === 1
@@ -261,12 +258,11 @@ export default function InternPortfolioStudioPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Studio Header Banner */}
       <div className="bg-gradient-to-r from-[#512d7c] via-[#3a1d5a] to-[#ff7a00] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="space-y-2 relative z-10 max-w-2xl">
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-[#f2b42c]" />
-            <span className="text-[10px] font-mono-tech font-bold uppercase tracking-wider text-amber-200">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-200">
               Multi-Theme Portfolio Studio
             </span>
           </div>
@@ -278,7 +274,7 @@ export default function InternPortfolioStudioPage() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 relative z-10 font-mono-tech">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 relative z-10 font-mono">
           <button
             type="button"
             onClick={handleCopyPublicUrl}
@@ -306,9 +302,7 @@ export default function InternPortfolioStudioPage() {
         </div>
       )}
 
-      {/* Main Studio Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left: Theme Picker (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div>
@@ -322,11 +316,10 @@ export default function InternPortfolioStudioPage() {
             </div>
           </div>
 
-          {/* Prominent Save / Publish Box */}
           <div className="p-4 bg-purple-50/60 border border-purple-200 rounded-2xl space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-700">Selected Theme:</span>
-              <span className="font-mono-tech font-black text-[#512d7c]">{activeTemplateObj.name}</span>
+              <span className="font-mono font-black text-[#512d7c]">{activeTemplateObj.name}</span>
             </div>
 
             <button
@@ -378,11 +371,11 @@ export default function InternPortfolioStudioPage() {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 pr-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-[9px] font-mono-tech font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase">
+                        <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase">
                           {tmpl.badge}
                         </span>
                         {isLive && (
-                          <span className="text-[9px] font-mono-tech font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center space-x-1">
+                          <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center space-x-1">
                             <Check className="w-2.5 h-2.5" />
                             <span>CURRENTLY LIVE</span>
                           </span>
@@ -410,7 +403,6 @@ export default function InternPortfolioStudioPage() {
           </div>
         </div>
 
-        {/* Right: Live Interactive Viewport Preview (7 cols) */}
         <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center space-x-2">
@@ -444,14 +436,12 @@ export default function InternPortfolioStudioPage() {
             </div>
           </div>
 
-          {/* Viewport Frame */}
           <div
             className={`mx-auto transition-all duration-300 rounded-2xl overflow-hidden border ${
               previewDevice === 'mobile' ? 'max-w-[340px] shadow-xl border-slate-300' : 'w-full shadow-sm border-slate-200'
             }`}
           >
-            {/* Window Bar Mock */}
-            <div className="bg-slate-900 px-3.5 py-2 flex items-center justify-between text-[10px] font-mono-tech text-slate-300">
+            <div className="bg-slate-900 px-3.5 py-2 flex items-center justify-between text-[10px] font-mono text-slate-300">
               <div className="flex items-center space-x-1.5">
                 <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
                 <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
@@ -463,18 +453,13 @@ export default function InternPortfolioStudioPage() {
               <span className="text-[9px] text-emerald-400 font-bold">&#10003; SSL</span>
             </div>
 
-            {/* Simulated Dual-Column Layout (Matching Screenshot 2) */}
             <div className={`p-4 sm:p-5 max-h-[580px] overflow-y-auto space-y-4 transition-colors duration-300 ${previewCanvas}`}>
-              
               <div className="text-[10px] font-mono font-bold uppercase pb-2 border-b border-current/20 flex justify-between">
                 <span>{activeTemplateObj.name.toUpperCase()} PREVIEW</span>
                 <span>{profile.nhcId}</span>
               </div>
 
-              {/* The Master Dual-Column Grid */}
               <div className={`grid ${previewDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-12'} gap-4 items-start`}>
-                
-                {/* 1. Left Sticky Mini Rail */}
                 <div className={`${previewDevice === 'mobile' ? 'col-span-1' : 'col-span-4'} p-3.5 rounded-2xl ${previewCard} space-y-3`}>
                   <div className="flex items-center space-x-3">
                     <div
@@ -496,7 +481,6 @@ export default function InternPortfolioStudioPage() {
                     <span className="font-black block">{profile.tier}</span>
                   </div>
 
-                  {/* Masked Privacy Fields in Preview */}
                   <div className="pt-2 border-t border-current/10 space-y-1.5 text-[9px] opacity-75 font-mono">
                     <div className="flex items-center space-x-1.5 truncate">
                       <Mail className="w-3 h-3 opacity-60 shrink-0" />
@@ -512,7 +496,6 @@ export default function InternPortfolioStudioPage() {
                     </div>
                   </div>
 
-                  {/* Social Buttons in Mini Rail */}
                   <div className="flex items-center space-x-2 pt-2 border-t border-current/10">
                     <div className="p-1.5 rounded-lg bg-current/5 border border-current/10"><GithubIcon className="w-3.5 h-3.5" /></div>
                     <div className="p-1.5 rounded-lg bg-current/5 border border-current/10 text-blue-500"><LinkedinIcon className="w-3.5 h-3.5" /></div>
@@ -521,10 +504,7 @@ export default function InternPortfolioStudioPage() {
                   </div>
                 </div>
 
-                {/* 2. Right Mini Content Spine */}
                 <div className={`${previewDevice === 'mobile' ? 'col-span-1' : 'col-span-8'} space-y-4`}>
-                  
-                  {/* Top Mini Nav Bar */}
                   <div className="flex items-center justify-between border-b border-current/10 pb-2 text-[10px] font-mono">
                     <div className="flex space-x-3 uppercase opacity-80">
                       <span className="font-bold underline">About</span>
@@ -537,7 +517,6 @@ export default function InternPortfolioStudioPage() {
                     </span>
                   </div>
 
-                  {/* Hero */}
                   <div className="space-y-1">
                     <span className={`text-[8px] font-mono uppercase font-bold tracking-widest ${previewAccent}`}>// TALENT DOSSIER</span>
                     <h3 className="text-sm font-black leading-tight">
@@ -545,7 +524,6 @@ export default function InternPortfolioStudioPage() {
                     </h3>
                   </div>
 
-                  {/* 4 Stats */}
                   <div className="grid grid-cols-4 gap-1.5 text-center text-[9px] font-mono">
                     <div className={`p-2 rounded-xl ${previewCard}`}><div className="font-black">100%</div><div className="text-[7px] opacity-60">Att</div></div>
                     <div className={`p-2 rounded-xl ${previewCard}`}><div className="font-black">2+</div><div className="text-[7px] opacity-60">Builds</div></div>
@@ -553,7 +531,6 @@ export default function InternPortfolioStudioPage() {
                     <div className={`p-2 rounded-xl ${previewCard}`}><div className="font-black">2 MO</div><div className="text-[7px] opacity-60">Runway</div></div>
                   </div>
 
-                  {/* Capstone Card */}
                   <div className={`p-3 rounded-2xl ${previewCard} space-y-1`}>
                     <div className="flex justify-between items-center text-[10px] font-bold">
                       <span>DGG Multi-Tenant Operations Engine</span>
@@ -562,7 +539,6 @@ export default function InternPortfolioStudioPage() {
                     <p className="text-[9px] opacity-70 line-clamp-1">Role-based gateway with Supabase RLS security.</p>
                   </div>
 
-                  {/* Review Card */}
                   <div className={`p-3 rounded-2xl ${previewCard} space-y-1 text-[9px]`}>
                     <div className="flex justify-between font-bold">
                       <span>AfriPay Fintech Hub Ltd.</span>
@@ -571,13 +547,11 @@ export default function InternPortfolioStudioPage() {
                     <p className="italic opacity-80 line-clamp-1">"Irene integrated our entire security policy schema ahead of schedule."</p>
                   </div>
 
-                  {/* Footer */}
                   <div className="pt-2 border-t border-current/10 flex justify-between text-[8px] font-mono opacity-60">
                     <span>&copy; {new Date().getFullYear()} {profile.name}</span>
                     <span className="text-amber-500 font-bold">Powered by D-Global Growthfield Ltd</span>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
