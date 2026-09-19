@@ -263,15 +263,18 @@ export default function DynamicSubdomainPortfolioPage() {
           .eq('is_public_on_dossier', true);
 
         const loadedReviews: ReviewItem[] = evaluations && evaluations.length > 0
-          ? evaluations.map((ev: any) => ({
-              id: ev.id,
-              authorName: `${ev.profiles?.first_name || 'Enterprise'} ${ev.profiles?.last_name || 'Supervisor'}`.trim(),
-              authorRole: 'Verified Incubator Supervisor',
-              rating: Number(ev.technical_score) || 5,
-              title: 'Practical Sprint Endorsement',
-              comment: ev.written_endorsement || 'Demonstrated strong execution during active trial.',
-              date: new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
-            }))
+          ? evaluations.map((ev: any) => {
+              const evalProfile = Array.isArray(ev.profiles) ? ev.profiles[0] : ev.profiles;
+              return {
+                id: ev.id,
+                authorName: `${evalProfile?.first_name || 'Enterprise'} ${evalProfile?.last_name || 'Supervisor'}`.trim(),
+                authorRole: 'Verified Incubator Supervisor',
+                rating: Number(ev.technical_score) || 5,
+                title: 'Practical Sprint Endorsement',
+                comment: ev.written_endorsement || 'Demonstrated strong execution during active trial.',
+                date: new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
+              };
+            })
           : [
               {
                 id: 'rev-1',
@@ -321,18 +324,20 @@ export default function DynamicSubdomainPortfolioPage() {
           video_pitch: '',
         };
 
+        const internProfileObj = Array.isArray(intern.profiles) ? intern.profiles[0] : intern.profiles;
+
         setPortfolio((prev) => ({
           ...prev,
           id: intern.id,
-          name: `${intern.profiles?.first_name || 'Apprentice'} ${intern.profiles?.last_name || ''}`.trim(),
+          name: `${internProfileObj?.first_name || 'Apprentice'} ${internProfileObj?.last_name || ''}`.trim(),
           nhcId: intern.nhc_id || prev.nhcId,
           tier: intern.tier || prev.tier,
           track: intern.specialization_track || prev.track,
           institution: intern.institution || prev.institution,
           discipline: intern.discipline || prev.discipline,
-          rawEmail: intern.profiles?.email || prev.rawEmail,
+          rawEmail: internProfileObj?.email || prev.rawEmail,
           location: intern.state_of_residence || prev.location,
-          avatarUrl: intern.profiles?.avatar_url || '',
+          avatarUrl: internProfileObj?.avatar_url || '',
           bio: intern.bio || prev.bio,
           headline: intern.headline?.trim() ? intern.headline : prev.headline,
           headlineDescription: intern.headline_description?.trim()
@@ -386,7 +391,6 @@ export default function DynamicSubdomainPortfolioPage() {
       }
       setBookmarked(false);
     } else {
-      // Look for any existing placement first
       const { data: existing } = await supabase
         .from('placements')
         .select('id')
@@ -467,7 +471,6 @@ export default function DynamicSubdomainPortfolioPage() {
       return;
     }
 
-    // Check if placement row already exists
     const { data: existing } = await supabase
       .from('placements')
       .select('id')

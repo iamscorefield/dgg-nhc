@@ -76,7 +76,6 @@ function getTotalMonths(tierString: string = ''): number {
   return 1;
 }
 
-// Check for emails or phone numbers
 function containsContactDetails(text: string): boolean {
   const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
   const phonePattern = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\b\d{10,14}\b|(?:\+234|0)[789][01]\d{8}/;
@@ -91,16 +90,13 @@ export default function StartupSprintReviewDesk() {
   const [activeInterns, setActiveInterns] = useState<PlacementOption[]>([]);
   const [selectedIntern, setSelectedIntern] = useState<PlacementOption | null>(null);
 
-  // Sprint Runway Navigation
   const [selectedMonth, setSelectedMonth] = useState<number>(1);
   const [allDbMilestones, setAllDbMilestones] = useState<SprintSubmission[]>([]);
 
-  // Deliverable Evaluation Modal
   const [selectedSubmission, setSelectedSubmission] = useState<SprintSubmission | null>(null);
   const [feedback, setFeedback] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // Edit Sprint Task Modal
   const [editingMilestone, setEditingMilestone] = useState<{
     id?: string;
     month_number: number;
@@ -113,7 +109,6 @@ export default function StartupSprintReviewDesk() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
 
-  // Rate Apprentice Modal
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedApprenticeToReview, setSelectedApprenticeToReview] = useState<PlacementOption | null>(null);
   const [rating, setRating] = useState(5);
@@ -132,7 +127,6 @@ export default function StartupSprintReviewDesk() {
     const uid = authData.user.id;
     setCurrentUserId(uid);
 
-    // 1. Fetch placements belonging to this startup
     const { data: placementsData } = await supabase
       .from('placements')
       .select('id, role_title, pre_agreed_stipend, intern_tier, intern_id, status')
@@ -149,7 +143,6 @@ export default function StartupSprintReviewDesk() {
     const placementIds = placementsData.map((p) => p.id);
     const internIds = Array.from(new Set(placementsData.map((p) => p.intern_id)));
 
-    // 2. Fetch profiles for apprentice names
     const { data: profilesData } = await supabase
       .from('profiles')
       .select('id, first_name, last_name')
@@ -174,7 +167,6 @@ export default function StartupSprintReviewDesk() {
       setSelectedIntern(activeList[0]);
     }
 
-    // 3. Fetch Sprint Milestones
     const { data: milestonesData } = await supabase
       .from('sprint_milestones')
       .select('*')
@@ -195,7 +187,6 @@ export default function StartupSprintReviewDesk() {
       setAllDbMilestones(enriched);
     }
 
-    // 4. Fetch Verified Attendance Logs
     const { data: attendanceData } = await supabase
       .from('attendance_logs')
       .select('*')
@@ -239,7 +230,7 @@ export default function StartupSprintReviewDesk() {
         status: newStatus,
         supervisor_feedback: feedback,
         reviewed_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', submissionId);
 
     setProcessingId(null);
@@ -275,7 +266,6 @@ export default function StartupSprintReviewDesk() {
 
     if (!editingMilestone || !selectedIntern) return;
 
-    // Prohibit phone numbers or email addresses
     if (containsContactDetails(editTitle) || containsContactDetails(editDescription)) {
       setContactError(
         'Prohibited content detected: Phone numbers and email addresses are not permitted in task instructions. Please communicate via the platform Sprint Room.'
@@ -291,7 +281,7 @@ export default function StartupSprintReviewDesk() {
         .update({
           title: editTitle.trim(),
           description: editDescription.trim(),
-        })
+        } as any)
         .eq('id', editingMilestone.id);
 
       if (error) {
@@ -310,7 +300,7 @@ export default function StartupSprintReviewDesk() {
           title: editTitle.trim(),
           description: editDescription.trim(),
           status: 'PENDING',
-        })
+        } as any)
         .select()
         .single();
 
@@ -376,7 +366,6 @@ export default function StartupSprintReviewDesk() {
   const pastReviews = submissions.filter((s) => s.status !== 'SUBMITTED' && s.status !== 'PENDING');
   const totalMonths = selectedIntern ? getTotalMonths(selectedIntern.intern_tier) : 2;
 
-  // Generate 4 weekly sprint cards for the selected month and candidate
   const currentMonthMilestones = [1, 2, 3, 4].map((wk) => {
     const match = allDbMilestones.find(
       (m) =>
@@ -398,7 +387,6 @@ export default function StartupSprintReviewDesk() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto font-sans p-2 sm:p-4">
-      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center space-x-2">
@@ -436,7 +424,6 @@ export default function StartupSprintReviewDesk() {
         </div>
       </div>
 
-      {/* Verified Apprentice Attendance Feed */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -487,7 +474,6 @@ export default function StartupSprintReviewDesk() {
         </div>
       </div>
 
-      {/* Active Sprint Runway Workspace & Curriculum Editor */}
       {selectedIntern ? (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 pt-4 border-t-2 border-purple-100">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
@@ -525,7 +511,6 @@ export default function StartupSprintReviewDesk() {
             </div>
           </div>
 
-          {/* Multi-Month Tab Strip for Supervisor */}
           <div className="space-y-2">
             <span className="text-[10px] font-mono uppercase tracking-wider font-extrabold text-slate-400 block">
               Incubation Runway Progression ({totalMonths}-Month Proof of Value) — Supervisor Curriculum Control
@@ -576,9 +561,8 @@ export default function StartupSprintReviewDesk() {
             </div>
           </div>
 
-          {/* 4 Weekly Sprints */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-            {currentMonthMilestones.map((m) => {
+            {currentMonthMilestones.map((m: any) => {
               const isApproved = m.status === 'APPROVED';
               const isSubmitted = m.status === 'SUBMITTED';
               const isRejected = m.status === 'REJECTED';
@@ -619,7 +603,7 @@ export default function StartupSprintReviewDesk() {
                     <h4 className="font-extrabold text-xs text-slate-900 leading-snug">{m.title}</h4>
                     <p className="text-[11px] text-slate-600 leading-relaxed">{m.description}</p>
 
-                    {m.deliverable_url && (
+                    {m?.deliverable_url && (
                       <a
                         href={m.deliverable_url}
                         target="_blank"
@@ -631,7 +615,7 @@ export default function StartupSprintReviewDesk() {
                       </a>
                     )}
 
-                    {m.supervisor_feedback && (
+                    {m?.supervisor_feedback && (
                       <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 text-[10px] text-[#512d7c] italic">
                         <strong>Feedback:</strong> "{m.supervisor_feedback}"
                       </div>
@@ -639,7 +623,6 @@ export default function StartupSprintReviewDesk() {
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 space-y-2">
-                    {/* Evaluate Button if Intern Submitted */}
                     {isSubmitted && (
                       <button
                         type="button"
@@ -654,7 +637,6 @@ export default function StartupSprintReviewDesk() {
                       </button>
                     )}
 
-                    {/* Supervisor Task Assignment Editor */}
                     <button
                       type="button"
                       onClick={() => {
@@ -682,7 +664,6 @@ export default function StartupSprintReviewDesk() {
         </div>
       ) : null}
 
-      {/* Edit Sprint Task Modal with Anti-Contact Filter */}
       {editingMilestone && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 border border-slate-200">
@@ -754,7 +735,6 @@ export default function StartupSprintReviewDesk() {
         </div>
       )}
 
-      {/* Deliverable Evaluation Modal */}
       {selectedSubmission && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 border border-slate-200">
@@ -780,7 +760,7 @@ export default function StartupSprintReviewDesk() {
               <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
                 <div>Candidate: <strong className="text-slate-900">{selectedSubmission.intern_name}</strong></div>
                 <div>Role: <strong className="text-slate-900">{selectedSubmission.placements?.role_title}</strong></div>
-                {selectedSubmission.deliverable_url && (
+                {selectedSubmission?.deliverable_url && (
                   <a
                     href={selectedSubmission.deliverable_url}
                     target="_blank"
@@ -832,7 +812,6 @@ export default function StartupSprintReviewDesk() {
         </div>
       )}
 
-      {/* Rate Apprentice Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 border border-slate-200">
@@ -939,7 +918,6 @@ export default function StartupSprintReviewDesk() {
         </div>
       )}
 
-      {/* Evaluation History */}
       {pastReviews.length > 0 && (
         <div className="space-y-4 pt-6 border-t border-slate-200">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">

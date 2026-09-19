@@ -61,7 +61,7 @@ export default function SprintReviewModal({
 
       const { error } = await supabase
         .from('sprint_milestones')
-        .update(updatePayload)
+        .update(updatePayload as any)
         .eq('id', milestone.id);
 
       if (error) throw error;
@@ -71,7 +71,7 @@ export default function SprintReviewModal({
         review_status: newStatus,
         supervisor_feedback: feedback.trim(),
         approved_at: newStatus === 'APPROVED' ? updatePayload.approved_at : undefined,
-      });
+      } as any);
 
       onClose();
     } catch (err: any) {
