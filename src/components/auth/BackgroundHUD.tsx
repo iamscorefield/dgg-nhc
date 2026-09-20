@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 
-const GIF_SLIDES = [
-  '/assets/gifs/slide-1.gif',
-  '/assets/gifs/slide-2.gif',
-  '/assets/gifs/slide-3.gif',
-  '/assets/gifs/slide-4.gif'
+const VIDEO_SLIDES = [
+  '/assets/videos/slide-1.mp4',
+  '/assets/videos/slide-2.mp4',
+  '/assets/videos/slide-3.mp4',
+  '/assets/videos/slide-4.mp4'
 ];
 
 const TYPING_PHRASES = [
@@ -24,10 +24,10 @@ export default function BackgroundHUD() {
   const [timeStr, setTimeStr] = useState('00:00:00 WAT');
   const [dateStr, setDateStr] = useState('Sep 13, 2026');
 
-  // Background 3-second presentation slide switcher
+  // Background 3-second presentation video slide switcher
   useEffect(() => {
     const slideTimer = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % GIF_SLIDES.length);
+      setCurrentSlideIndex((prev) => (prev + 1) % VIDEO_SLIDES.length);
     }, 3000);
     return () => clearInterval(slideTimer);
   }, []);
@@ -90,14 +90,17 @@ export default function BackgroundHUD() {
 
   return (
     <>
-      {/* 4-Slide Presentation Background Layer */}
+      {/* 4-Slide HTML5 Video Background Layer */}
       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#07020d] via-[#07020d]/75 to-transparent z-10" />
-        {GIF_SLIDES.map((src, idx) => (
-          <img
+        {VIDEO_SLIDES.map((src, idx) => (
+          <video
             key={src}
+            autoPlay
+            muted
+            loop
+            playsInline
             src={src}
-            alt=""
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
               idx === currentSlideIndex ? 'opacity-35' : 'opacity-0'
             }`}
