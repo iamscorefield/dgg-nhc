@@ -10,10 +10,10 @@ const VIDEO_SLIDES = [
 ];
 
 const TYPING_PHRASES = [
-  'DGG-WorkSpace Pan-African Campus Talent Ecosystem...',
-  'Zero-Tuition Tech Training & Verified NHC Credentials...',
+  'Welcome to the DGG Nexus-Hub Ecosystem...',
+  'Where Remote Job-Seekers are connected,',
+  'Startup Owner/Entreprenuer trust to hire...',
   'Active Tri-Party Startup Negotiation Rooms Online...',
-  'Live Subdomain Portfolios on nexushub.dglobalgrowthfield.com...'
 ];
 
 export default function BackgroundHUD() {
@@ -92,7 +92,7 @@ export default function BackgroundHUD() {
     <>
       {/* 4-Slide HTML5 Video Background Layer */}
       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#07020d] via-[#07020d]/75 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#07020d]/50 via-[#07020d]/30 to-transparent z-10" />
         {VIDEO_SLIDES.map((src, idx) => (
           <video
             key={src}

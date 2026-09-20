@@ -43,13 +43,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   1. Mandatory Certificate ID Verification & Eligibility
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Identity & Credential Verification:</strong> To safeguard ecosystem security and prevent unauthorized registrations, all intern and apprentice sign-ups require a valid, verified DGG Certificate ID as the primary means of identity and skill verification.
+                   <strong className="text-slate-800">Identity & Credential Verification:</strong> To safeguard ecosystem security and prevent unauthorized registrations, all intern and apprentice sign-ups require a valid, verified DGG Certificate ID as the primary means of identity and skill verification.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Zero Certificate Cost & Enrollment Pathway:</strong> There are no payment encumbrances or fees required for verification. Individuals who do not currently possess a valid DGG Certificate ID must enroll in our Learning Management System (LMS) courses or join our upcoming cohort internship programs to acquire certified status before onboarding onto the talent placement network.
+                   <strong className="text-slate-800">Zero Certificate Cost & Enrollment Pathway:</strong> There are no payment encumbrances or fees required for verification. Individuals who do not currently possess a valid DGG Certificate ID must enroll in our Learning Management System (LMS) courses or join our upcoming cohort internship programs to acquire certified status before onboarding onto the talent placement network.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Account Security:</strong> Users are strictly prohibited from sharing login credentials, misrepresenting their identity, or using fraudulent certificate identifiers.
+                   <strong className="text-slate-800">Account Security:</strong> Users are strictly prohibited from sharing login credentials, misrepresenting their identity, or using fraudulent certificate identifiers.
                 </p>
               </div>
 
@@ -58,13 +58,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   2. Tri-Party Incubation & Operational Standards
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Zero-Cost Labor Incubation:</strong> Participating startups receive vetted intern labor during the initial 3-month incubation cycle under structured developmental guidelines.
+                   <strong className="text-slate-800">Zero-Cost Labor Incubation:</strong> Participating startups receive vetted intern labor during the initial 3-month incubation cycle under structured developmental guidelines.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Facilitation & Administrative Surcharge:</strong> All post-incubation retention contracts, milestone disbursements, and formal arrangements must be brokered through the platform&apos;s secure negotiation desks under administrative oversight, subject to the standard 10% platform sustainability surcharge.
+                   <strong className="text-slate-800">Facilitation & Administrative Surcharge:</strong> All post-incubation retention contracts, milestone disbursements, and formal arrangements must be brokered through the platform&apos;s secure negotiation desks under administrative oversight, subject to the standard 10% platform sustainability surcharge.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Conduct & Compliance:</strong> Both startups and interns must maintain professional conduct, respect intellectual property rights, and adhere to agreed milestone timelines.
+                   <strong className="text-slate-800">Conduct & Compliance:</strong> Both startups and interns must maintain professional conduct, respect intellectual property rights, and adhere to agreed milestone timelines.
                 </p>
               </div>
 
@@ -73,10 +73,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   3. Subdomain Portfolio & Professional Identity Protocols
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Dedicated Portfolio Nodes:</strong> Verified interns are granted a professional subdomain portfolio handle at <code className="bg-purple-50 text-[#512d7c] px-1 py-0.5 rounded font-mono">nexushub.dglobalgrowthfield.com/portfolio/username</code> to showcase verified achievements and project milestones.
+                   <strong className="text-slate-800">Dedicated Portfolio Nodes:</strong> Verified interns are granted a professional subdomain portfolio handle at <code className="bg-purple-50 text-[#512d7c] px-1 py-0.5 rounded font-mono">nexushub.dglobalgrowthfield.com/portfolio/username</code> to showcase verified achievements and project milestones.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Accuracy of Records:</strong> Members are bound to maintain accurate professional records, project submissions, and employment history. Impersonation of enterprise partners or falsification of project deliverables is strictly prohibited.
+                   <strong className="text-slate-800">Accuracy of Records:</strong> Members are bound to maintain accurate professional records, project submissions, and employment history. Impersonation of enterprise partners or falsification of project deliverables is strictly prohibited.
                 </p>
               </div>
 
@@ -85,10 +85,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   4. Multi-Domain Affiliate & Commission Audits
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Transparent Earning System:</strong> Referral and affiliate earnings accrued through tracked promotional links across authorized corporate properties are audited and disbursed directly to registered Nigerian bank accounts (e.g., GTB, Access Bank).
+                   <strong className="text-slate-800">Transparent Earning System:</strong> Referral and affiliate earnings accrued through tracked promotional links across authorized corporate properties are audited and disbursed directly to registered Nigerian bank accounts (e.g., GTB, Access Bank).
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Zero Tolerance for Fraud:</strong> Fraudulent clicks, automated traffic generation, self-referrals, or system manipulation will result in the forfeiture of accrued commissions and access review.
+                   <strong className="text-slate-800">Zero Tolerance for Fraud:</strong> Fraudulent clicks, automated traffic generation, self-referrals, or system manipulation will result in the forfeiture of accrued commissions and access review.
                 </p>
               </div>
 
@@ -97,10 +97,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   5. Intellectual Property & Platform Rights
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Proprietary Frameworks:</strong> All proprietary software architectures, community frameworks, branding elements, and course materials remain the exclusive intellectual property of D Global Growthfield (DGG).
+                   <strong className="text-slate-800">Proprietary Frameworks:</strong> All proprietary software architectures, community frameworks, branding elements, and course materials remain the exclusive intellectual property of D Global Growthfield (DGG).
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Limitation of Liability:</strong> The platform acts as a secure intermediary and vetting bridge; while rigorous verification protocols are enforced, DGG is not directly liable for private external contractual disputes between independent startups and matched interns beyond the platform&apos;s mediation framework.
+                   <strong className="text-slate-800">Limitation of Liability:</strong> The platform acts as a secure intermediary and vetting bridge; while rigorous verification protocols are enforced, DGG is not directly liable for private external contractual disputes between independent startups and matched interns beyond the platform&apos;s mediation framework.
                 </p>
               </div>
 
@@ -109,10 +109,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   6. On-Platform Communication & Interaction Protocols
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Centralized Engagement:</strong> To maintain transparency, auditability, and security, all professional communications, milestone negotiations, and collaborative project discussions between startups and interns must be conducted directly within the platform&apos;s official communication channels and negotiation rooms.
+                   <strong className="text-slate-800">Centralized Engagement:</strong> To maintain transparency, auditability, and security, all professional communications, milestone negotiations, and collaborative project discussions between startups and interns must be conducted directly within the platform&apos;s official communication channels and negotiation rooms.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Boundary Management:</strong> Participants are encouraged to keep core professional exchanges inside the platform ecosystem to ensure proper record-keeping and administrative support when needed.
+                   <strong className="text-slate-800">Boundary Management:</strong> Participants are encouraged to keep core professional exchanges inside the platform ecosystem to ensure proper record-keeping and administrative support when needed.
                 </p>
               </div>
 
@@ -121,10 +121,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   7. Digital Asset Protection & Lawful Usage
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Confidentiality & Data Integrity:</strong> Users must protect all proprietary digital assets, source code, enterprise data, and training materials shared during the incubation process.
+                   <strong className="text-slate-800">Confidentiality & Data Integrity:</strong> Users must protect all proprietary digital assets, source code, enterprise data, and training materials shared during the incubation process.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Unlawful Conduct Prohibition:</strong> All participants agree to use the platform exclusively for lawful educational, technological, and entrepreneurial development purposes. Any unauthorized data extraction, malicious code deployment, or engagement in prohibited digital activities is strictly restricted.
+                    <strong className="text-slate-800">Unlawful Conduct Prohibition:</strong> All participants agree to use the platform exclusively for lawful educational, technological, and entrepreneurial development purposes. Any unauthorized data extraction, malicious code deployment, or engagement in prohibited digital activities is strictly restricted.
                 </p>
               </div>
             </>
@@ -135,13 +135,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 1: Access, Account Creation & Authentication
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Unified Onboarding:</strong> New participants select their designated portal track upon sign-up—either registering as an Enterprise/Startup partner or an Apprentice/Intern candidate.
+                  <strong className="text-slate-800">Unified Onboarding:</strong> New participants select their designated portal track upon sign-up—either registering as an Enterprise/Startup partner or an Apprentice/Intern candidate.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Credentials & Verification:</strong> Interns authenticate using their verified DGG Certificate ID, while Startups register using their official corporate identifiers (RC numbers) to establish immediate platform trust.
+                    <strong className="text-slate-800">Credentials & Verification:</strong> Interns authenticate using their verified DGG Certificate ID, while Startups register using their official corporate identifiers (RC numbers) to establish immediate platform trust.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Secure Sessions:</strong> Once authenticated via secure session management, users instantly claim their personalized workspace dashboard and professional profile handle.
+                   <strong className="text-slate-800">Secure Sessions:</strong> Once authenticated via secure session management, users instantly claim their personalized workspace dashboard and professional profile handle.
                 </p>
               </div>
 
@@ -150,13 +150,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 2: Startup Enterprise Verification & Desk Setup
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Vetting Protocol:</strong> Registered enterprises complete a streamlined verification review to validate their operational background and mentorship environment.
+                   <strong className="text-slate-800">Vetting Protocol:</strong> Registered enterprises complete a streamlined verification review to validate their operational background and mentorship environment.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Escrow Vault Funding:</strong> Founders gain access to the dedicated Escrow & Stipends Hub, where they can model monthly placement budgets and securely fund project vaults via integrated gateway checkout.
+                   <strong className="text-slate-800">Escrow Vault Funding:</strong> Founders gain access to the dedicated Escrow & Stipends Hub, where they can model monthly placement budgets and securely fund project vaults via integrated gateway checkout.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Role Publishing:</strong> Verified startups can post specific internship roles, technical requirements, and milestone objectives directly to the talent sourcing pipeline.
+                   <strong className="text-slate-800">Role Publishing:</strong> Verified startups can post specific internship roles, technical requirements, and milestone objectives directly to the talent sourcing pipeline.
                 </p>
               </div>
 
@@ -165,13 +165,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 3: Apprentice Talent Profiling & Skill Vault
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Portfolio Building:</strong> Apprentices curate their professional portfolios, displaying verified technical skill sets, completed modules, and project credentials.
+                   <strong className="text-slate-800">Portfolio Building:</strong> Apprentices curate their professional portfolios, displaying verified technical skill sets, completed modules, and project credentials.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Direct Application & Matching:</strong> Candidates browse open enterprise positions and submit applications into active hiring pipelines.
+                   <strong className="text-slate-800">Direct Application & Matching:</strong> Candidates browse open enterprise positions and submit applications into active hiring pipelines.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Tri-Party Negotiation:</strong> Selected candidates enter structured review desks where terms, milestone scopes, and trial stipends are finalized with administrative mediation.
+                   <strong className="text-slate-800">Tri-Party Negotiation:</strong> Selected candidates enter structured review desks where terms, milestone scopes, and trial stipends are finalized with administrative mediation.
                 </p>
               </div>
 
@@ -180,13 +180,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 4: 3-Month Zero-Cost Incubation & Workspace Collaboration
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Active Placement:</strong> Matched teams operate within dedicated workspace channels, utilizing sprint review desks to track weekly deliverables and milestones.
+                   <strong className="text-slate-800">Active Placement:</strong> Matched teams operate within dedicated workspace channels, utilizing sprint review desks to track weekly deliverables and milestones.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Transparent Disbursements:</strong> Startups can effortlessly dispatch trial stipends or release approved milestone funds from their available balance or via instant gateway settlement.
+                   <strong className="text-slate-800">Transparent Disbursements:</strong> Startups can effortlessly dispatch trial stipends or release approved milestone funds from their available balance or via instant gateway settlement.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Dispute & Mediation Support:</strong> Built-in mediation desks ensure transparent conflict resolution and secure workflow protection for both parties throughout the incubation term.
+                   <strong className="text-slate-800">Dispute & Mediation Support:</strong> Built-in mediation desks ensure transparent conflict resolution and secure workflow protection for both parties throughout the incubation term.
                 </p>
               </div>
 
@@ -195,10 +195,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 5: Ecosystem Learning & Skill Pacing
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Continuous Upskilling:</strong> Participants connect seamlessly with advanced coursework and technical training tracks on <code className="font-mono text-[#512d7c]">learning.dglobalgrowthfield.com</code> to accelerate professional growth.
+                   <strong className="text-slate-800">Continuous Upskilling:</strong> Participants connect seamlessly with advanced coursework and technical training tracks on <code className="font-mono text-[#512d7c]">learning.dglobalgrowthfield.com</code> to accelerate professional growth.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Progress Tracking:</strong> Regular evaluations and milestone completions are logged to reflect real-world competency and readiness.
+                   <strong className="text-slate-800">Progress Tracking:</strong> Regular evaluations and milestone completions are logged to reflect real-world competency and readiness.
                 </p>
               </div>
 
@@ -207,10 +207,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 6: Community Growth & Affiliate Enablement
                 </h4>
                 <p>
-                  * <strong className="text-slate-800">Ecosystem Extension:</strong> Beyond core placements, community members can engage with broader platform broadcasts, digital literacy programs, and collaborative network initiatives.
+                   <strong className="text-slate-800">Ecosystem Extension:</strong> Beyond core placements, community members can engage with broader platform broadcasts, digital literacy programs, and collaborative network initiatives.
                 </p>
                 <p>
-                  * <strong className="text-slate-800">Value Creation:</strong> Active contributors leverage community tools to expand their professional reach, build enterprise networks, and scale sustainable tech ventures.
+                   <strong className="text-slate-800">Value Creation:</strong> Active contributors leverage community tools to expand their professional reach, build enterprise networks, and scale sustainable tech ventures.
                 </p>
               </div>
             </>

@@ -244,7 +244,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
         {/* Certificate / Sponsor ID Box with Inline Verify Action */}
         <div className="p-3.5 rounded-2xl bg-purple-50/50 border-2 border-purple-200/80 space-y-2">
           <label className="block text-[10px] font-black uppercase tracking-wider text-[#512d7c]">
-            EXTERNAL CERTIFICATE / SPONSOR ID NUMBER (OPTIONAL LOOKUP)
+            Input your Valid CERTIFICATE ID
           </label>
           <div className="relative flex items-center">
             <input

@@ -22,11 +22,11 @@ export default function OnboardingGateway() {
       {/* 2. Main Authentication Card (High-Fidelity Semi-Frosted Surface) */}
       <main className="w-full max-w-[540px] z-20 transition-all duration-300 my-auto">
         <div className="text-center mb-4">
-          <div className="w-12 h-12 bg-white rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-2 border border-white/20">
-            <span className="text-[#512d7c] text-2xl font-black font-mono-tech">D</span>
+          <div className="w-12 h-12 bg-white rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-2 border border-white/20 overflow-hidden">
+             <img src="/dgg-logo.png" alt="DGG-NexusHub Logo" className="w-full h-full object-contain p-1.5" />
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
-            Welcome to DGG-NexusHub
+            Welcome to DGG Nexus-Hub
           </h1>
           <p className="text-xs text-white/70 mt-1">Pan-African Campus Talent & Enterprise Gateway</p>
         </div>
