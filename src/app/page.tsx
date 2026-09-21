@@ -19,10 +19,10 @@ export default function OnboardingGateway() {
       {/* 1. Full-screen Background HUD Layer */}
       <BackgroundHUD />
 
-      {/* 2. Main Authentication Card (High-Fidelity Semi-Frosted Surface) */}
-      <main className="w-full max-w-[540px] z-20 transition-all duration-300 my-auto">
+      {/* 2. Main Authentication Card (High-Fidelity Deep Frost Glassmorphism Surface) */}
+      <main className="w-full max-w-[450px] z-20 transition-all duration-300 my-auto">
         <div className="text-center mb-4">
-          <div className="w-12 h-12 bg-white rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-2 border border-white/20 overflow-hidden">
+          <div className="w-12 h-12 bg-white/95 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-2 border border-white/20 overflow-hidden">
              <img src="/dgg-logo.png" alt="DGG-NexusHub Logo" className="w-full h-full object-contain p-1.5" />
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
@@ -31,7 +31,7 @@ export default function OnboardingGateway() {
           <p className="text-xs text-white/70 mt-1">Pan-African Campus Talent & Enterprise Gateway</p>
         </div>
 
-        <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-[0_30px_70px_rgba(0,0,0,0.6)] text-slate-800">
+        <div className="bg-[#0d0614]/65 backdrop-blur-[20px] saturate-[180%] border border-white/12 rounded-[2rem] p-5 sm:p-7 shadow-[0_40px_80px_rgba(0,0,0,0.6)] text-white">
           {authState === 'signin' && (
             <CardSignIn
               onBack={() => setAuthState('selector')}
