@@ -232,10 +232,10 @@ export default function CardSignIn({ onBack, onSwitchToSignup, onSuccess }: Card
 
       <div>
         <h3 className="text-base font-black text-white">
-          {useOtpMode ? 'Secure Email OTP Sign-In' : 'Platform Sign-In for Interns & Entrepreneurs'}
+          {useOtpMode ? 'Secure Email OTP Sign-In' : 'Sign-in Gateway...'}
         </h3>
         <p className="text-white/60 text-[11px]">
-          {useOtpMode ? 'Receive a secure 6-digit login code via email.' : 'Access your Intern Workspace or Startup/Entrepreneur Hiring Portal.'}
+          {useOtpMode ? 'Receive a secure 6-digit login code via email.' : 'Access to Intern Workspace or Startup/Entrepreneur Portal.'}
         </p>
       </div>
 
@@ -250,7 +250,7 @@ export default function CardSignIn({ onBack, onSwitchToSignup, onSuccess }: Card
         !otpSent ? (
           <form onSubmit={handleSendOtp} className="space-y-3.5">
             <div>
-              <label className="block text-white/80 font-bold mb-1">Corporate / Registered Email</label>
+              <label className="block text-white/80 font-bold mb-1">Registered Email</label>
               <div className="relative flex items-center">
                 <Mail className="w-4 h-4 absolute left-3 text-white/40" />
                 <input
@@ -307,7 +307,7 @@ export default function CardSignIn({ onBack, onSwitchToSignup, onSuccess }: Card
       ) : (
         <form onSubmit={handleSignIn} className="space-y-3.5">
           <div>
-            <label className="block text-white/80 font-bold mb-1">Corporate / Registered Email</label>
+            <label className="block text-white/80 font-bold mb-1">Registered Email</label>
             <div className="relative flex items-center">
               <Mail className="w-4 h-4 absolute left-3 text-white/40" />
               <input
