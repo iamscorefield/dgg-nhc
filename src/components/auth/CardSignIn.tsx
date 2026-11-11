@@ -346,7 +346,7 @@ export default function CardSignIn({ onBack, onSwitchToSignup, onSuccess }: Card
             disabled={loading}
             className="w-full py-3.5 bg-gradient-to-r from-[#512d7c] to-[#ff7a00] hover:opacity-95 text-white font-black uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer mt-2 flex items-center justify-center space-x-2 disabled:opacity-60 border border-white/10"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Authorize & Enter Terminal ➔</span>}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Access Dashboard ➔</span>}
           </button>
         </form>
       )}
