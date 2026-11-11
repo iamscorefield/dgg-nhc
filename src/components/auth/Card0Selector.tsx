@@ -16,7 +16,7 @@ export default function Card0Selector({ onSelectRole, onSwitchToLogin }: Card0Se
           Select Registration Category
         </h2>
         <p className="text-xs text-white/60">
-          Choose your track to begin verified onboarding into the NexusHub Ecosystem
+          Choose your track to begin verified onboarding into the DGG NexusHub Ecosystem
         </p>
       </div>
 
@@ -33,10 +33,10 @@ export default function Card0Selector({ onSelectRole, onSwitchToLogin }: Card0Se
             </div>
             <div className="flex-grow">
               <h3 className="font-extrabold text-sm text-white group-hover:text-[#f2b42c] transition-colors">
-                Student Intern & Affiliate Partner
+                Expert Talent & Affiliate Partner
               </h3>
               <p className="text-[11px] text-white/60 mt-0.5 leading-snug">
-                Tuition-free tech tracks, verified NHC credentials & 3-month startup matching
+                Professional Tech Expert, verified NHC credentials & Experienced Employability matching
               </p>
             </div>
             <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-[#f2b42c] group-hover:translate-x-1 transition-all shrink-0 ml-2" />
@@ -55,10 +55,10 @@ export default function Card0Selector({ onSelectRole, onSwitchToLogin }: Card0Se
             </div>
             <div className="flex-grow">
               <h3 className="font-extrabold text-sm text-white group-hover:text-[#f2b42c] transition-colors">
-                Entrepreneur & Hiring Enterprise
+                Business Owner, Entrepreneur & Hiring Enterprise
               </h3>
               <p className="text-[11px] text-white/60 mt-0.5 leading-snug">
-                Access certified cross-disciplinary talent with mandatory executive assessment
+                Access certified cross-disciplinary talent with mandatory executive assessment & Trials
               </p>
             </div>
             <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-[#f2b42c] group-hover:translate-x-1 transition-all shrink-0 ml-2" />

@@ -54,7 +54,7 @@ export default function InternSupportPage() {
         <div>
           <div className="flex items-center space-x-2">
             <LifeBuoy className="w-5 h-5 text-purple-700" />
-            <h1 className="text-xl font-black text-slate-900">Apprentice Support & Dispute Desk</h1>
+            <h1 className="text-xl font-black text-slate-900">Talent Expert Support & Dispute Desk</h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
             Resolve milestone disagreements, request stipend verification, or communicate with DGG Admin.
@@ -87,7 +87,7 @@ export default function InternSupportPage() {
           <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
           <h3 className="font-extrabold text-sm text-slate-900">No Disputed Issues</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Your apprenticeship sprints are running smoothly. If you experience supervisor delays, click Open Ticket above.
+            Your Expertise sprints are running smoothly. If you experience supervisor delays, click Open Ticket above.
           </p>
         </div>
       ) : (

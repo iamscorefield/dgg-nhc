@@ -28,7 +28,7 @@ export default function OnboardingGateway() {
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">
             Welcome to DGG Nexus-Hub
           </h1>
-          <p className="text-xs text-white/70 mt-1">Pan-African Campus Talent & Enterprise Gateway</p>
+          <p className="text-xs text-white/70 mt-1">Pan-African Digital Expertise Talent & Enterprise Gateway</p>
         </div>
 
         <div className="bg-[#0d0614]/65 backdrop-blur-[20px] saturate-[180%] border border-white/12 rounded-[2rem] p-5 sm:p-7 shadow-[0_40px_80px_rgba(0,0,0,0.6)] text-white">

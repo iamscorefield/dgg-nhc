@@ -73,6 +73,9 @@ interface PortfolioState {
   name: string;
   nhcId: string;
   tier: string;
+  tierLevel: 'TIER_1' | 'TIER_2' | 'TIER_3';
+  trialRunwayLabel: string;
+  trialWeeks: number;
   track: string;
   institution: string;
   discipline: string;
@@ -98,6 +101,21 @@ interface PortfolioState {
   };
 }
 
+function resolveTemplateNumber(val: any): number {
+  if (typeof val === 'number' && val >= 1 && val <= 5) return val;
+  if (!val) return 1;
+
+  const str = String(val).toLowerCase().trim();
+  if (str === '1' || str.includes('minimalist') || str.includes('tech') || str.includes('terminal')) return 1;
+  if (str === '2' || str.includes('corporate') || str.includes('executive')) return 2;
+  if (str === '3' || str.includes('matrix') || str.includes('cyber') || str.includes('glow')) return 3;
+  if (str === '4' || str.includes('modern') || str.includes('clean') || str.includes('glass')) return 4;
+  if (str === '5' || str.includes('brutalist') || str.includes('neo')) return 5;
+
+  const parsed = parseInt(str, 10);
+  return isNaN(parsed) ? 1 : Math.max(1, Math.min(5, parsed));
+}
+
 export default function DynamicSubdomainPortfolioPage() {
   const params = useParams();
   const subdomain = params?.subdomain as string;
@@ -107,16 +125,13 @@ export default function DynamicSubdomainPortfolioPage() {
   const [bookmarked, setBookmarked] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
 
-  // Auth Context
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<'startup' | 'intern' | 'admin' | 'guest'>('guest');
 
-  // Modals
   const [showGateModal, setShowGateModal] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [interceptorTarget, setInterceptorTarget] = useState<string>('');
 
-  // Incubation Offer Details
   const [contractTerm, setContractTerm] = useState<'6_MONTHS' | '1_YEAR' | '2_YEARS'>('1_YEAR');
   const [proposedStipend, setProposedStipend] = useState<number>(150000);
   const [roleTitle, setRoleTitle] = useState('');
@@ -127,7 +142,10 @@ export default function DynamicSubdomainPortfolioPage() {
     id: '',
     name: 'Apprentice Candidate',
     nhcId: 'DGG-NHC-2026',
-    tier: 'Associate (Intermediate: 2-month trial)',
+    tier: 'Tier 1: Foundation (2-Week Trial)',
+    tierLevel: 'TIER_1',
+    trialRunwayLabel: '2 WKS',
+    trialWeeks: 2,
     track: 'Engineering',
     institution: 'University Campus',
     discipline: 'Computer Science',
@@ -140,7 +158,7 @@ export default function DynamicSubdomainPortfolioPage() {
     ongoingAssignments: 'Active Sprints on DGG-NexusHub',
     verifiedCertId: 'DGG-TN-2026',
     sprintAttendanceScore: '100%',
-    template: 5,
+    template: 1,
     skillsSpecialization: [],
     projects: [],
     reviews: [],
@@ -165,10 +183,7 @@ export default function DynamicSubdomainPortfolioPage() {
   const formatVideoEmbedUrl = (rawUrl?: string) => {
     if (!rawUrl) return null;
     const trimmed = rawUrl.trim();
-
-    if (trimmed.includes('loom.com/share/')) {
-      return trimmed.replace('loom.com/share/', 'loom.com/embed/');
-    }
+    if (trimmed.includes('loom.com/share/')) return trimmed.replace('loom.com/share/', 'loom.com/embed/');
     if (trimmed.includes('youtu.be/')) {
       const id = trimmed.split('youtu.be/')[1]?.split('?')[0];
       return `https://www.youtube.com/embed/${id}`;
@@ -187,6 +202,7 @@ export default function DynamicSubdomainPortfolioPage() {
   useEffect(() => {
     async function loadCandidateAndAuth() {
       if (!subdomain) return;
+      setLoading(true);
 
       const { data: authData } = await supabase.auth.getUser();
       let detectedRole: 'startup' | 'intern' | 'admin' | 'guest' = 'guest';
@@ -200,42 +216,38 @@ export default function DynamicSubdomainPortfolioPage() {
           .maybeSingle();
 
         if (prof?.role) {
-          if (prof.role === 'entrepreneur' || prof.role === 'startup') {
-            detectedRole = 'startup';
-          } else {
-            detectedRole = prof.role as any;
-          }
+          detectedRole = (prof.role === 'entrepreneur' || prof.role === 'startup') ? 'startup' : (prof.role as any);
           setUserRole(detectedRole);
         }
       }
 
-      const { data: intern, error } = await supabase
+      // Fetch intern profile by subdomain handle
+      let { data: intern, error } = await supabase
         .from('intern_profiles')
-        .select(`
-          id,
-          nhc_id,
-          tier,
-          specialization_track,
-          state_of_residence,
-          institution,
-          discipline,
-          bio,
-          headline,
-          headline_description,
-          skills,
-          skills_specialization,
-          sprint_attendance_score,
-          verified_cert_id,
-          ongoing_assignments,
-          portfolio_template,
-          projects,
-          social_links,
-          profiles ( first_name, last_name, email, avatar_url )
-        `)
+        .select('*')
         .eq('subdomain_handle', subdomain)
         .maybeSingle();
 
-      if (intern && !error) {
+      // Fallback lookup by id if handle didn't match
+      if (!intern && !error) {
+        const { data: fallbackIntern } = await supabase
+          .from('intern_profiles')
+          .select('*')
+          .eq('id', subdomain)
+          .maybeSingle();
+        intern = fallbackIntern;
+      }
+
+      if (intern) {
+        const targetUserId = intern.id || intern.user_id;
+
+        // Fetch user profile info
+        const { data: userProf } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email, avatar_url')
+          .eq('id', targetUserId)
+          .maybeSingle();
+
         if (authData?.user && detectedRole === 'startup') {
           const { data: placement } = await supabase
             .from('placements')
@@ -244,9 +256,7 @@ export default function DynamicSubdomainPortfolioPage() {
             .eq('intern_id', intern.id)
             .maybeSingle();
 
-          if (placement) {
-            setBookmarked(true);
-          }
+          if (placement) setBookmarked(true);
         }
 
         const { data: evaluations } = await supabase
@@ -275,27 +285,13 @@ export default function DynamicSubdomainPortfolioPage() {
                 date: new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
               };
             })
-          : [
-              {
-                id: 'rev-1',
-                authorName: 'DGG NexusHub Desk',
-                authorRole: 'Incubator Academic Board',
-                rating: 5,
-                title: 'High Sprint Consistency',
-                comment: 'Consistent attendance and milestone deliverable submission across core tracks.',
-                date: 'Sep 2026',
-              },
-            ];
+          : [];
 
         let parsedSkills: SkillSpecializationItem[] = [];
         if (Array.isArray(intern.skills_specialization) && intern.skills_specialization.length > 0) {
           parsedSkills = intern.skills_specialization;
         } else if (typeof intern.skills_specialization === 'string') {
-          try {
-            parsedSkills = JSON.parse(intern.skills_specialization);
-          } catch {
-            parsedSkills = [];
-          }
+          try { parsedSkills = JSON.parse(intern.skills_specialization); } catch { parsedSkills = []; }
         }
 
         if (parsedSkills.length === 0 && Array.isArray(intern.skills)) {
@@ -309,11 +305,7 @@ export default function DynamicSubdomainPortfolioPage() {
         if (Array.isArray(intern.projects)) {
           parsedProjects = intern.projects;
         } else if (typeof intern.projects === 'string') {
-          try {
-            parsedProjects = JSON.parse(intern.projects);
-          } catch {
-            parsedProjects = [];
-          }
+          try { parsedProjects = JSON.parse(intern.projects); } catch { parsedProjects = []; }
         }
 
         const links = intern.social_links || {
@@ -324,34 +316,56 @@ export default function DynamicSubdomainPortfolioPage() {
           video_pitch: '',
         };
 
-        const internProfileObj = Array.isArray(intern.profiles) ? intern.profiles[0] : intern.profiles;
+        const rawTier = (intern.tier || '').toLowerCase();
+        const completedJobs = Number(intern.completed_jobs_count || 0);
 
-        setPortfolio((prev) => ({
-          ...prev,
+        let finalTier = 'Tier 1: Foundation (2-Week Trial)';
+        let tierLevel: 'TIER_1' | 'TIER_2' | 'TIER_3' = 'TIER_1';
+        let trialRunwayLabel = '2 WKS';
+        let trialWeeks = 2;
+
+        if (completedJobs >= 4 || rawTier.includes('pro') || rawTier.includes('tier 3') || rawTier.includes('fellow')) {
+          finalTier = 'Tier 3: Nexus Pro (Zero Trial / Direct Retainer)';
+          tierLevel = 'TIER_3';
+          trialRunwayLabel = '0 WKS / PRO';
+          trialWeeks = 0;
+        } else if (completedJobs >= 2 || rawTier.includes('associate') || rawTier.includes('tier 2') || rawTier.includes('acceleration') || rawTier.includes('2-month')) {
+          finalTier = 'Tier 2: Acceleration (1-Week Fast-Track)';
+          tierLevel = 'TIER_2';
+          trialRunwayLabel = '1 WK';
+          trialWeeks = 1;
+        }
+
+        // Dynamically extract template number from either column
+        const rawTmpl = intern.portfolio_template ?? intern.template_id;
+        const currentTemplate = resolveTemplateNumber(rawTmpl);
+
+        setPortfolio({
           id: intern.id,
-          name: `${internProfileObj?.first_name || 'Apprentice'} ${internProfileObj?.last_name || ''}`.trim(),
-          nhcId: intern.nhc_id || prev.nhcId,
-          tier: intern.tier || prev.tier,
-          track: intern.specialization_track || prev.track,
-          institution: intern.institution || prev.institution,
-          discipline: intern.discipline || prev.discipline,
-          rawEmail: internProfileObj?.email || prev.rawEmail,
-          location: intern.state_of_residence || prev.location,
-          avatarUrl: internProfileObj?.avatar_url || '',
-          bio: intern.bio || prev.bio,
-          headline: intern.headline?.trim() ? intern.headline : prev.headline,
-          headlineDescription: intern.headline_description?.trim()
-            ? intern.headline_description
-            : (intern.bio || prev.headlineDescription),
+          name: `${userProf?.first_name || 'Apprentice'} ${userProf?.last_name || ''}`.trim(),
+          nhcId: intern.nhc_id || 'DGG-NHC-2026',
+          tier: finalTier,
+          tierLevel,
+          trialRunwayLabel,
+          trialWeeks,
+          track: intern.specialization_track || 'Specialization Track',
+          institution: intern.institution || 'Accredited Institution',
+          discipline: intern.discipline || 'Degree Program',
+          rawEmail: userProf?.email || '',
+          location: intern.state_of_residence || 'Remote Hub',
+          avatarUrl: userProf?.avatar_url || intern.avatar_url || '',
+          bio: intern.bio || 'Accredited talent undergoing sprint incubation.',
+          headline: intern.headline?.trim() || 'Bridging Technical Execution with Enterprise Engineering.',
+          headlineDescription: intern.headline_description?.trim() || intern.bio || 'Building scalable production systems.',
           sprintAttendanceScore: intern.sprint_attendance_score || '100%',
-          ongoingAssignments: intern.ongoing_assignments || prev.ongoingAssignments,
-          verifiedCertId: intern.verified_cert_id || prev.verifiedCertId,
-          template: Number(intern.portfolio_template) || 5,
+          ongoingAssignments: intern.ongoing_assignments || 'Active Sprints on DGG-NexusHub',
+          verifiedCertId: intern.verified_cert_id || 'DGG-VERIFIED',
+          template: currentTemplate,
           skillsSpecialization: parsedSkills,
           projects: parsedProjects,
           reviews: loadedReviews,
           socialLinks: links,
-        }));
+        });
 
         setRoleTitle(`${intern.specialization_track?.split(':')[1]?.trim() || 'Specialist'} Associate`);
       }
@@ -374,8 +388,6 @@ export default function DynamicSubdomainPortfolioPage() {
       return;
     }
 
-    const trialMonths = portfolio.tier.includes('Fellow') ? 1 : portfolio.tier.includes('Associate') ? 2 : 3;
-
     if (bookmarked) {
       const { error } = await supabase
         .from('placements')
@@ -385,7 +397,6 @@ export default function DynamicSubdomainPortfolioPage() {
         .eq('pipeline_stage', 'SHORTLISTED');
 
       if (error) {
-        console.error('Error removing bookmark:', error);
         alert(`Failed to remove bookmark: ${error.message}`);
         return;
       }
@@ -399,26 +410,20 @@ export default function DynamicSubdomainPortfolioPage() {
         .maybeSingle();
 
       if (existing) {
-        const { error } = await supabase
+        await supabase
           .from('placements')
           .update({
             pipeline_stage: 'SHORTLISTED',
             status: 'INVITED',
           })
           .eq('id', existing.id);
-
-        if (error) {
-          console.error('Error updating placement to bookmark:', error);
-          alert(`Database Error: ${error.message}`);
-          return;
-        }
       } else {
-        const { error } = await supabase.from('placements').insert({
+        await supabase.from('placements').insert({
           startup_id: currentUser.id,
           intern_id: portfolio.id,
           role_title: roleTitle || `${portfolio.track} Associate`,
           intern_tier: portfolio.tier,
-          trial_duration_months: trialMonths,
+          trial_duration_weeks: portfolio.trialWeeks,
           contract_term: contractTerm,
           pre_agreed_stipend: proposedStipend,
           terms_agreed_by_startup: true,
@@ -426,14 +431,7 @@ export default function DynamicSubdomainPortfolioPage() {
           status: 'INVITED',
           pipeline_stage: 'SHORTLISTED',
         });
-
-        if (error) {
-          console.error('Error inserting bookmark placement:', error);
-          alert(`Database Insert Error: ${error.message}`);
-          return;
-        }
       }
-
       setBookmarked(true);
     }
   };
@@ -451,25 +449,17 @@ export default function DynamicSubdomainPortfolioPage() {
       window.open(externalUrl, '_blank');
       return;
     }
-
     setInterceptorTarget(channelName);
-    if (userRole === 'startup') {
-      setShowOfferModal(true);
-    } else {
-      setShowGateModal(true);
-    }
+    if (userRole === 'startup') setShowOfferModal(true);
+    else setShowGateModal(true);
   };
 
   const handleDispatchOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     setDispatchingOffer(true);
+    if (!currentUser) { setDispatchingOffer(false); return; }
 
-    const trialMonths = portfolio.tier.includes('Fellow') ? 1 : portfolio.tier.includes('Associate') ? 2 : 3;
-
-    if (!currentUser) {
-      setDispatchingOffer(false);
-      return;
-    }
+    const isPro = portfolio.tierLevel === 'TIER_3';
 
     const { data: existing } = await supabase
       .from('placements')
@@ -479,47 +469,33 @@ export default function DynamicSubdomainPortfolioPage() {
       .maybeSingle();
 
     if (existing) {
-      const { error } = await supabase
+      await supabase
         .from('placements')
         .update({
           role_title: roleTitle,
-          pipeline_stage: 'OFFER_EXTENDED',
+          pipeline_stage: isPro ? 'RETAINED' : 'OFFER_EXTENDED',
           status: 'INVITED',
           contract_term: contractTerm,
           pre_agreed_stipend: proposedStipend,
-          trial_duration_months: trialMonths,
+          trial_duration_weeks: portfolio.trialWeeks,
           terms_agreed_by_startup: true,
           terms_agreed_by_intern: false,
         })
         .eq('id', existing.id);
-
-      if (error) {
-        setDispatchingOffer(false);
-        console.error('Error updating offer:', error);
-        alert(`Failed to send offer: ${error.message}`);
-        return;
-      }
     } else {
-      const { error } = await supabase.from('placements').insert({
+      await supabase.from('placements').insert({
         startup_id: currentUser.id,
         intern_id: portfolio.id,
         role_title: roleTitle,
         intern_tier: portfolio.tier,
-        trial_duration_months: trialMonths,
+        trial_duration_weeks: portfolio.trialWeeks,
         contract_term: contractTerm,
         pre_agreed_stipend: proposedStipend,
         terms_agreed_by_startup: true,
         terms_agreed_by_intern: false,
         status: 'INVITED',
-        pipeline_stage: 'OFFER_EXTENDED',
+        pipeline_stage: isPro ? 'RETAINED' : 'OFFER_EXTENDED',
       });
-
-      if (error) {
-        setDispatchingOffer(false);
-        console.error('Error inserting offer:', error);
-        alert(`Failed to send offer: ${error.message}`);
-        return;
-      }
     }
 
     setDispatchingOffer(false);
@@ -625,7 +601,6 @@ export default function DynamicSubdomainPortfolioPage() {
       <ReferralTracker subdomain={subdomain} targetPage={`/portfolio/${subdomain}`} />
 
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Top Header Bar */}
         <div className="flex items-center justify-between border-b pb-3 border-current/20">
           <div className="flex items-center space-x-2 text-xs font-mono font-bold uppercase tracking-wider">
             {tmpl === 5 ? (
@@ -697,6 +672,7 @@ export default function DynamicSubdomainPortfolioPage() {
                 </div>
               </div>
 
+              {/* Official Tier Box */}
               <div className={`p-4 rounded-2xl space-y-1 ${highlightBox}`}>
                 <span className="text-[9px] font-mono uppercase font-bold opacity-70 block">
                   OFFICIAL TIER EVALUATION:
@@ -817,6 +793,7 @@ export default function DynamicSubdomainPortfolioPage() {
                 </p>
               </div>
 
+              {/* 4 Metrics Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className={`p-4 rounded-2xl ${cardBox} text-center space-y-1`}>
                   <div className="text-2xl font-black font-mono">{portfolio.sprintAttendanceScore}</div>
@@ -837,7 +814,7 @@ export default function DynamicSubdomainPortfolioPage() {
 
                 <div className={`p-4 rounded-2xl ${cardBox} text-center space-y-1`}>
                   <div className="text-2xl font-black font-mono">
-                    {portfolio.tier.includes('Fellow') ? '1 MO' : portfolio.tier.includes('Associate') ? '2 MO' : '3 MO'}
+                    {portfolio.trialRunwayLabel}
                   </div>
                   <div className="text-[10px] font-mono opacity-60 uppercase">Trial Runway</div>
                 </div>
@@ -1136,7 +1113,7 @@ export default function DynamicSubdomainPortfolioPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-mono uppercase font-bold text-emerald-700">
-                  Direct Enterprise Incubation Desk
+                  {portfolio.tierLevel === 'TIER_3' ? 'Direct Retainer Agreement' : 'Direct Enterprise Incubation Desk'}
                 </span>
                 <h3 className="text-base font-black text-slate-950">
                   Propose Terms to {portfolio.name}
@@ -1202,7 +1179,7 @@ export default function DynamicSubdomainPortfolioPage() {
 
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5 text-xs font-mono">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Free Proof-of-Value Runway:</span>
+                    <span className="text-slate-500">Evaluation Runway:</span>
                     <span className="font-bold text-emerald-700">{portfolio.tier}</span>
                   </div>
                   <div className="flex justify-between">
@@ -1216,7 +1193,9 @@ export default function DynamicSubdomainPortfolioPage() {
                 </div>
 
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  The trial is 100% free ($0 commitment). The pre-agreed monthly stipend locks into escrow upon successful trial completion.
+                  {portfolio.tierLevel === 'TIER_3'
+                    ? 'Nexus Pro talent require zero trial runway; contract locks directly into active retainer upon bilateral handshake.'
+                    : `The trial period is 100% free (₦0 upfront risk). The agreed monthly stipend locks into escrow upon successful clearance of the ${portfolio.trialRunwayLabel} sprint.`}
                 </p>
 
                 <button
@@ -1225,7 +1204,7 @@ export default function DynamicSubdomainPortfolioPage() {
                   className="w-full py-3.5 bg-[#512d7c] hover:bg-[#3e215f] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                 >
                   <FileCheck className="w-4 h-4" />
-                  <span>{dispatchingOffer ? 'Sending Official Offer...' : 'Send Official Incubation Offer ➔'}</span>
+                  <span>{dispatchingOffer ? 'Sending Official Offer...' : portfolio.tierLevel === 'TIER_3' ? 'Send Direct Retainer Offer ➔' : 'Send Official Incubation Offer ➔'}</span>
                 </button>
               </form>
             )}

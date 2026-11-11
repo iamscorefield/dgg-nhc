@@ -261,10 +261,10 @@ export default function CompanyProfilePage() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Company Profile & Verification Desk
+            Company Profile & Settings Desk
           </h1>
           <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-            Manage your verified enterprise credentials, business offerings, target clientele, and view bilateral mentorship ratings submitted by apprentice cohorts.
+            Manage your verified enterprise credentials, business offerings, target clientele, and view bilateral mentorship ratings submitted by expert cohorts.
           </p>
         </div>
 
@@ -365,13 +365,13 @@ export default function CompanyProfilePage() {
             </div>
           </div>
 
-          {/* Verified Apprentice Reviews & Scorecard */}
+          {/* Verified Expert Reviews & Scorecard */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Apprentice Mentorship Scorecard
+                  Expert Mentorship Scorecard
                 </h3>
               </div>
               <div className="flex items-center space-x-1 bg-amber-50 text-amber-900 font-bold text-xs px-2.5 py-0.5 rounded-full border border-amber-200">
@@ -381,7 +381,7 @@ export default function CompanyProfilePage() {
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              Real endorsements left by apprentice candidates upon completing weekly sprint milestones.
+              Real endorsements left by expert candidates upon completing weekly sprint milestones.
             </p>
 
             {reviews.length === 0 ? (

@@ -112,7 +112,7 @@ export default function InternLayout({
 
   const navSections = [
     {
-      heading: 'Dashboard & Learning',
+      heading: 'Expert Dashboard',
       items: [
         {
           name: 'Dashboard Overview',
@@ -121,19 +121,19 @@ export default function InternLayout({
           exact: true,
         },
         {
-          name: 'Student Profile, NHC ID & Projects',
+          name: 'Profile & Settings',
           href: '/intern/profile',
           icon: UserCheck,
         },
         {
-          name: 'Subdomain Portfolio',
+          name: 'Live Portfolio',
           href: '/intern/portfolio',
           icon: Globe,
         },
       ],
     },
     {
-      heading: 'Affiliate Earning Hub',
+      heading: 'DGG Affiliate Resources',
       items: [
         {
           name: 'Overview & Stats',
@@ -141,7 +141,7 @@ export default function InternLayout({
           icon: BarChart3,
         },
         {
-          name: 'Multi-Domain Deep-Links',
+          name: 'Referral Links',
           href: '/intern/affiliate/deep-links',
           icon: Link2,
         },
@@ -156,7 +156,7 @@ export default function InternLayout({
           icon: Activity,
         },
         {
-          name: 'Earnings Wallet & Payout',
+          name: 'Earnings & Wallet',
           href: '/intern/affiliate/wallet',
           icon: Wallet,
         },
@@ -173,16 +173,16 @@ export default function InternLayout({
       ],
     },
     {
-      heading: 'Incubation & Career',
+      heading: 'Job & Career Offers',
       items: [
         {
-          name: 'Incubation Offers',
+          name: 'Job Offers',
           href: '/intern/incubation/startup',
           icon: Briefcase,
           exact: true,
         },
         {
-          name: 'Sprint Runway Pipeline',
+          name: 'Milestone Runway Pipeline',
           href: '/intern/incubation/pipeline',
           icon: Layers,
           exact: true,
@@ -193,7 +193,7 @@ export default function InternLayout({
           icon: Bot,
         },
         {
-          name: 'Dispute & Admin Desk',
+          name: 'Dispute & Help Desk',
           href: '/intern/support',
           icon: LifeBuoy,
         },
@@ -352,7 +352,7 @@ export default function InternLayout({
               darkMode ? 'bg-purple-950/60 border-purple-500/30 text-purple-200' : 'bg-purple-50 border-purple-200 text-[#512d7c]'
             }`}>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className={darkMode ? 'text-white/60 font-medium' : 'text-slate-500 font-medium'}>Partner & Intern:</span>
+              <span className={darkMode ? 'text-white/60 font-medium' : 'text-slate-500 font-medium'}>Talent Expert:</span>
               <span className={darkMode ? 'text-white font-extrabold' : 'text-slate-900 font-extrabold'}>{userName}</span>
             </div>
 

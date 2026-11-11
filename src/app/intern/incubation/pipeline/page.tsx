@@ -25,7 +25,8 @@ import {
   MessageSquare,
   X,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 interface PlacementRecord {
@@ -77,19 +78,43 @@ interface ChatMessage {
 const COLUMNS = [
   { key: 'SHORTLISTED', title: 'Shortlisted Talent', badgeColor: 'bg-blue-100 text-blue-800', icon: Bookmark },
   { key: 'OFFER_EXTENDED', title: 'Offers Extended', badgeColor: 'bg-amber-100 text-amber-800', icon: Send },
-  { key: 'IN_TRIAL', title: 'In Active Trial', badgeColor: 'bg-purple-100 text-purple-800', icon: PlayCircle },
+  { key: 'IN_TRIAL', title: 'Active Sprint Trial', badgeColor: 'bg-purple-100 text-purple-800', icon: PlayCircle },
   { key: 'RETAINED', title: 'Retained & Contracted', badgeColor: 'bg-emerald-100 text-emerald-800', icon: Award },
 ];
 
-function getTotalMonths(tierString: string = ''): number {
+// Helper: 3-Tier Sprint Runway Resolution
+function getTrialSprintWeeks(tierString: string = ''): number {
   const lower = tierString.toLowerCase();
-  if (lower.includes('3-month') || lower.includes('junior') || lower.includes('entry') || lower.includes('newbie')) {
-    return 3;
+  if (lower.includes('tier 3') || lower.includes('pro') || lower.includes('instant') || lower.includes('retained')) {
+    return 4; // Full monthly retainer sprint cycle
   }
-  if (lower.includes('2-month') || lower.includes('associate') || lower.includes('intermediate')) {
-    return 2;
+  if (lower.includes('tier 2') || lower.includes('acceleration') || lower.includes('1-week') || lower.includes('1 week')) {
+    return 1; // 1-Week Fast-Track Trial
   }
-  return 1;
+  return 2; // Tier 1: 2-Week Foundation Trial (Default)
+}
+
+function getTierDisplayBadge(tierString: string = '') {
+  const lower = tierString.toLowerCase();
+  if (lower.includes('tier 3') || lower.includes('pro')) {
+    return {
+      title: 'Tier 3: Nexus Pro',
+      subtitle: 'Zero Trial • Instant Retainer Placement',
+      color: 'bg-amber-100 text-amber-900 border-amber-300',
+    };
+  }
+  if (lower.includes('tier 2') || lower.includes('acceleration') || lower.includes('1-week')) {
+    return {
+      title: 'Tier 2: Acceleration Track',
+      subtitle: '1-Week Fast-Track Trial Sprint',
+      color: 'bg-purple-100 text-purple-900 border-purple-300',
+    };
+  }
+  return {
+    title: 'Tier 1: Foundation Track',
+    subtitle: '2-Week Evaluation Trial Sprint',
+    color: 'bg-blue-100 text-blue-900 border-blue-300',
+  };
 }
 
 export default function InternPipelinePage() {
@@ -100,7 +125,6 @@ export default function InternPipelinePage() {
   const [activePlacement, setActivePlacement] = useState<PlacementRecord | null>(null);
 
   // Runway state
-  const [selectedMonth, setSelectedMonth] = useState<number>(1);
   const [allDbMilestones, setAllDbMilestones] = useState<MilestoneRecord[]>([]);
 
   // Contract Acceptance
@@ -203,8 +227,10 @@ export default function InternPipelinePage() {
     if (!error && placementData) {
       const normalized: PlacementRecord[] = placementData.map((pl: any) => {
         let stage = pl.pipeline_stage;
-        if (pl.terms_agreed_by_intern === true || pl.status === 'ACTIVE' || stage === 'IN_TRIAL') {
-          stage = 'IN_TRIAL';
+        const isTierPro = (pl.intern_tier || '').toLowerCase().includes('tier 3') || (pl.intern_tier || '').toLowerCase().includes('pro');
+
+        if (pl.terms_agreed_by_intern === true || pl.status === 'ACTIVE') {
+          stage = isTierPro ? 'RETAINED' : 'IN_TRIAL';
         } else if (stage === 'INVITED' || stage === 'OFFER_EXTENDED') {
           stage = 'OFFER_EXTENDED';
         } else if (stage === 'HIRED_CONTRACTED' || pl.status === 'COMPLETED' || stage === 'RETAINED') {
@@ -217,7 +243,10 @@ export default function InternPipelinePage() {
 
       setPlacements(normalized);
 
-      const currentActive = normalized.find((p) => p.pipeline_stage === 'IN_TRIAL');
+      const currentActive = normalized.find(
+        (p) => p.pipeline_stage === 'IN_TRIAL' || p.pipeline_stage === 'RETAINED'
+      );
+
       if (currentActive) {
         setActivePlacement(currentActive);
         await Promise.all([
@@ -264,7 +293,6 @@ export default function InternPipelinePage() {
       .order('created_at', { ascending: false });
 
     if (data && data.length > 0) {
-      // Check if there is an open clock-in (check_out is null)
       const openSession = data.find((log: any) => !log.check_out);
       if (openSession) {
         setIsClockedIn(true);
@@ -306,8 +334,8 @@ export default function InternPipelinePage() {
         {
           id: 'welcome-daemon',
           sender_role: 'system',
-          sender_name: 'DGG Placement Daemon',
-          message_text: 'Tripartite contract terms sealed. Unpaid trial runway unlocked with pre-agreed terms.',
+          sender_name: 'NexusHub Operations Daemon',
+          message_text: 'Contract handshake active. Escrow stipend locked with performance tier parameters.',
           created_at: new Date().toISOString(),
         },
       ]);
@@ -318,24 +346,17 @@ export default function InternPipelinePage() {
     loadPipeline();
   }, []);
 
-  const totalMonths = getTotalMonths(activePlacement?.intern_tier);
+  const totalSprintWeeks = getTrialSprintWeeks(activePlacement?.intern_tier);
+  const tierBadge = getTierDisplayBadge(activePlacement?.intern_tier);
 
-  const isMonthUnlocked = (month: number): boolean => {
-    if (month === 1) return true;
-    const prevMonthW4 = allDbMilestones.find(
-      (m) => m.month_number === month - 1 && m.week_number === 4
-    );
-    return prevMonthW4?.status === 'APPROVED';
-  };
-
-  const currentMonthMilestones: MilestoneRecord[] = [1, 2, 3, 4].map((wk) => {
-    const match = allDbMilestones.find((m) => m.month_number === selectedMonth && m.week_number === wk);
+  const runwayMilestones: MilestoneRecord[] = Array.from({ length: totalSprintWeeks }, (_, i) => i + 1).map((wk) => {
+    const match = allDbMilestones.find((m) => m.week_number === wk);
     if (match) return match;
     return {
-      month_number: selectedMonth,
+      month_number: 1,
       week_number: wk,
-      title: `Month 0${selectedMonth} • Sprint 0${wk}: Deliverable Milestone`,
-      description: `Deliverable goals and technical requirements for Week ${wk} of Month ${selectedMonth}.`,
+      title: `Sprint 0${wk}: Agile Deliverable Milestone`,
+      description: `Specific output requirements and verification tickets for Sprint Week 0${wk}.`,
       status: 'PENDING',
     };
   });
@@ -457,11 +478,14 @@ export default function InternPipelinePage() {
     setAcceptingOffer(true);
 
     const placementId = selectedOfferToAccept.id;
+    const isPro = (selectedOfferToAccept.intern_tier || '').toLowerCase().includes('tier 3') || (selectedOfferToAccept.intern_tier || '').toLowerCase().includes('pro');
+    const targetStage = isPro ? 'RETAINED' : 'IN_TRIAL';
+
     const { error } = await supabase
       .from('placements')
       .update({
         status: 'ACTIVE',
-        pipeline_stage: 'IN_TRIAL',
+        pipeline_stage: targetStage,
         terms_agreed_by_intern: true,
       })
       .eq('id', placementId);
@@ -476,7 +500,7 @@ export default function InternPipelinePage() {
     const updatedOffer: PlacementRecord = {
       ...selectedOfferToAccept,
       status: 'ACTIVE',
-      pipeline_stage: 'IN_TRIAL',
+      pipeline_stage: targetStage,
       terms_agreed_by_intern: true,
     };
 
@@ -498,12 +522,11 @@ export default function InternPipelinePage() {
     setSubmittingDeliverable(true);
 
     const targetWeekNumber = Number(activeMilestoneModal.week_number);
-    const targetMonthNumber = Number(activeMilestoneModal.month_number);
 
     const payload = {
       placement_id: activePlacement.id,
       intern_id: currentUserId,
-      month_number: targetMonthNumber,
+      month_number: 1,
       week_number: targetWeekNumber,
       title: deliverableTitle,
       description: deliverableNotes,
@@ -527,7 +550,7 @@ export default function InternPipelinePage() {
     setSubmissionSuccess(true);
     const newRecord: MilestoneRecord = {
       id: data.id,
-      month_number: targetMonthNumber,
+      month_number: 1,
       week_number: targetWeekNumber,
       title: deliverableTitle,
       description: deliverableNotes,
@@ -536,7 +559,7 @@ export default function InternPipelinePage() {
     };
 
     setAllDbMilestones((prev) => [
-      ...prev.filter((m) => !(m.month_number === targetMonthNumber && m.week_number === targetWeekNumber)),
+      ...prev.filter((m) => m.week_number !== targetWeekNumber),
       newRecord,
     ]);
 
@@ -569,10 +592,10 @@ export default function InternPipelinePage() {
             <Link href="/intern/incubation/startup" className="text-slate-400 hover:text-slate-700 transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <h1 className="text-xl font-black text-slate-900">Apprentice Lifecycle Pipeline</h1>
+            <h1 className="text-xl font-black text-slate-900">Agile Sprint Runway Pipeline</h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Monitor enterprise discovery, multi-month sprint execution, daily attendance logs, and retainer sign-off.
+            Monitor sprint delivery milestones, daily attendance timekeeping, and client verification reviews.
           </p>
         </div>
 
@@ -621,7 +644,7 @@ export default function InternPipelinePage() {
                       <div
                         key={p.id}
                         onClick={() => {
-                          if (p.pipeline_stage === 'IN_TRIAL') {
+                          if (p.pipeline_stage === 'IN_TRIAL' || p.pipeline_stage === 'RETAINED') {
                             setActivePlacement(p);
                             loadMilestones(p.id);
                             loadAttendanceLogs(p.id, currentUserId);
@@ -629,7 +652,7 @@ export default function InternPipelinePage() {
                           }
                         }}
                         className={`bg-white border rounded-2xl p-4 space-y-2 transition-all cursor-pointer ${
-                          isSelected && p.pipeline_stage === 'IN_TRIAL'
+                          isSelected && (p.pipeline_stage === 'IN_TRIAL' || p.pipeline_stage === 'RETAINED')
                             ? 'border-purple-600 shadow-md ring-1 ring-purple-600'
                             : 'border-slate-200 hover:border-slate-300 shadow-sm'
                         }`}
@@ -646,7 +669,7 @@ export default function InternPipelinePage() {
                         <h4 className="font-extrabold text-xs text-slate-900 leading-snug">{company}</h4>
                         <p className="text-[11px] font-bold text-[#512d7c] truncate">{p.role_title}</p>
 
-                        {p.pipeline_stage === 'IN_TRIAL' && (
+                        {(p.pipeline_stage === 'IN_TRIAL' || p.pipeline_stage === 'RETAINED') && (
                           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-purple-700 font-bold">
                             <span>Open Sprint Runway</span>
                             <ChevronRight className="w-3.5 h-3.5" />
@@ -681,7 +704,7 @@ export default function InternPipelinePage() {
       {/* Active Trial Sprint Workspace */}
       {activePlacement ? (
         <div className="space-y-8">
-          {/* Section 1: Multi-Month Sprint Board */}
+          {/* Section 1: Tier Sprint Runway Board */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div>
@@ -691,77 +714,45 @@ export default function InternPipelinePage() {
                     Sprint Workspace: {activePlacement.startup_profiles?.company_name}
                   </h2>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Proof-of-Value Runway: <span className="font-bold text-slate-700">{activePlacement.intern_tier}</span> • Escrow Stipend: <span className="font-bold text-emerald-700">₦{Number(activePlacement.pre_agreed_stipend).toLocaleString()} / month</span>
-                </p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className={`text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${tierBadge.color}`}>
+                    {tierBadge.title} ({totalSprintWeeks} Sprint {totalSprintWeeks === 1 ? 'Week' : 'Weeks'})
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    Escrow Stipend: <strong className="text-emerald-700">₦{Number(activePlacement.pre_agreed_stipend).toLocaleString()} / month</strong>
+                  </span>
+                </div>
               </div>
               <span className="text-[10px] font-mono font-bold uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full self-start sm:self-auto">
-                Active Sprint Runway
+                {activePlacement.pipeline_stage === 'RETAINED' ? 'RETAINER CONTRACT' : 'ACTIVE TRIAL RUNWAY'}
               </span>
             </div>
 
-            {/* Multi-Month Tab Strip */}
-            <div className="space-y-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-extrabold text-slate-400 block">
-                Incubation Runway Progression ({totalMonths}-Month Proof of Value)
-              </span>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {Array.from({ length: totalMonths }, (_, i) => i + 1).map((month) => {
-                  const unlocked = isMonthUnlocked(month);
-                  const isSelected = selectedMonth === month;
-                  const monthMilestones = allDbMilestones.filter((m) => m.month_number === month);
-                  const completedCount = monthMilestones.filter((m) => m.status === 'APPROVED').length;
-                  const isCompleted = completedCount === 4;
-
-                  return (
-                    <button
-                      key={month}
-                      type="button"
-                      disabled={!unlocked}
-                      onClick={() => setSelectedMonth(month)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                        !unlocked
-                          ? 'bg-slate-50 border-slate-200 opacity-50 cursor-not-allowed'
-                          : isSelected
-                          ? 'bg-purple-50/70 border-[#512d7c] ring-2 ring-[#512d7c]/30 shadow-sm'
-                          : 'bg-white border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-black text-xs text-slate-900">Month 0{month} Runway</span>
-                          {isCompleted && (
-                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">
-                              Cleared
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[11px] text-slate-500 font-mono">
-                          {unlocked ? `${completedCount} of 4 Sprints Approved` : `Locked (Requires Month 0${month - 1})`}
-                        </span>
-                      </div>
-
-                      {!unlocked ? (
-                        <Lock className="w-4 h-4 text-slate-400" />
-                      ) : isCompleted ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      ) : (
-                        <Calendar className={`w-4 h-4 ${isSelected ? 'text-[#512d7c]' : 'text-slate-400'}`} />
-                      )}
-                    </button>
-                  );
-                })}
+            {/* Performance Tier Progression Banner */}
+            <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-xl bg-[#512d7c] text-white flex items-center justify-center shrink-0">
+                  <Zap className="w-4 h-4 text-[#f2b42c]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">{tierBadge.subtitle}</h4>
+                  <p className="text-[11px] text-slate-600">
+                    Tier 1 (2-Week) ➔ Complete 2 projects with verified ratings ➔ Unlock Tier 2 (1-Week Fast-Track) ➔ 4+ projects unlocks Nexus Pro (Zero Trial).
+                  </p>
+                </div>
               </div>
+              <span className="text-[10px] font-mono font-bold uppercase text-[#512d7c] bg-white px-2.5 py-1 rounded-xl border border-purple-200 shrink-0">
+                {totalSprintWeeks} Weekly Sprints In Runway
+              </span>
             </div>
 
-            {/* 4 Weekly Sprints */}
+            {/* Sprint Deliverables Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              {currentMonthMilestones.map((m, idx) => {
+              {runwayMilestones.map((m, idx) => {
                 const isApproved = m.status === 'APPROVED';
                 const isSubmitted = m.status === 'SUBMITTED';
                 const isRejected = m.status === 'REJECTED';
-                const isUnlocked = idx === 0 ? isMonthUnlocked(selectedMonth) : currentMonthMilestones[idx - 1].status === 'APPROVED';
+                const isUnlocked = idx === 0 || runwayMilestones[idx - 1].status === 'APPROVED';
 
                 return (
                   <div
@@ -781,7 +772,7 @@ export default function InternPipelinePage() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-mono font-bold uppercase text-slate-500">
-                          M{selectedMonth} • Week 0{m.week_number}
+                          Sprint Week 0{m.week_number}
                         </span>
                         <span
                           className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full ${
@@ -814,7 +805,7 @@ export default function InternPipelinePage() {
                       {!isUnlocked ? (
                         <div className="flex items-center space-x-1.5 text-xs text-slate-400 font-bold py-2 justify-center">
                           <Lock className="w-3.5 h-3.5" />
-                          <span>Unlocks After Week 0{m.week_number - 1}</span>
+                          <span>Unlocks After Sprint 0{m.week_number - 1}</span>
                         </div>
                       ) : isApproved ? (
                         <div className="flex items-center space-x-1.5 text-xs text-emerald-700 font-bold py-2">
@@ -831,7 +822,7 @@ export default function InternPipelinePage() {
                           type="button"
                           onClick={() => {
                             setActiveMilestoneModal(m);
-                            setDeliverableTitle(`Month ${m.month_number} • Week 0${m.week_number}: Deliverable`);
+                            setDeliverableTitle(`Sprint Week 0${m.week_number}: Deliverable`);
                             setDeliverableUrl(m.deliverable_url || '');
                             setDeliverableNotes(m.description || '');
                           }}
@@ -966,14 +957,14 @@ export default function InternPipelinePage() {
       ) : (
         <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3">
           <Building className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="font-extrabold text-sm text-slate-900">No Active Trial Selected</h3>
+          <h3 className="font-extrabold text-sm text-slate-900">No Active Placement Selected</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Once an enterprise offer is accepted, your multi-month sprint runway, punch clock, and attendance logs will load here.
+            Once an enterprise offer is accepted, your sprint runway, punch clock, and attendance logs will load here.
           </p>
         </div>
       )}
 
-      {/* Floating Collapsible Sprint Room Chat (FAB & Drawer) */}
+      {/* Floating Sprint Room Chat */}
       {activePlacement && (
         <div className="fixed bottom-6 right-6 z-40">
           {!isChatOpen ? (
@@ -988,14 +979,13 @@ export default function InternPipelinePage() {
             </button>
           ) : (
             <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-80 sm:w-96 flex flex-col h-[480px] overflow-hidden animate-in slide-in-from-bottom duration-200">
-              {/* Drawer Header */}
               <div className="p-3.5 bg-[#512d7c] text-white flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Building className="w-4 h-4 text-amber-300" />
                   <div>
                     <h4 className="font-black text-xs leading-none">Sprint Room Chat</h4>
                     <span className="text-[9px] text-white/70 block mt-0.5">
-                      {activePlacement.startup_profiles?.company_name} • Tripartite
+                      {activePlacement.startup_profiles?.company_name} • Tripartite Desk
                     </span>
                   </div>
                 </div>
@@ -1008,7 +998,6 @@ export default function InternPipelinePage() {
                 </button>
               </div>
 
-              {/* Chat Message List */}
               <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5 text-xs bg-slate-50/50">
                 {chatMessages.map((msg) => {
                   if (msg.sender_role === 'system') {
@@ -1038,7 +1027,6 @@ export default function InternPipelinePage() {
                 <div ref={chatBottomRef} />
               </div>
 
-              {/* Chat Input */}
               <form onSubmit={handleSendChat} className="p-2.5 bg-white border-t border-slate-100 flex items-center space-x-1.5">
                 <input
                   type="text"
@@ -1086,7 +1074,7 @@ export default function InternPipelinePage() {
                 <Check className="w-12 h-12 text-emerald-600 mx-auto animate-bounce" />
                 <h4 className="text-base font-black text-slate-900">Trial Placement Authorized!</h4>
                 <p className="text-xs text-slate-500">
-                  Moved directly into In Active Trial. Initializing your sprint runway...
+                  Sprint runway initialised. Redirecting...
                 </p>
               </div>
             ) : (
@@ -1109,8 +1097,10 @@ export default function InternPipelinePage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Proof-of-Value Runway:</span>
-                    <span className="font-bold text-slate-900">{selectedOfferToAccept.intern_tier}</span>
+                    <span className="text-slate-500">Performance Track:</span>
+                    <span className="font-bold text-[#f2b42c] bg-purple-900 px-2 py-0.5 rounded">
+                      {selectedOfferToAccept.intern_tier || 'Tier 1: Foundation (2-Week Trial)'}
+                    </span>
                   </div>
                 </div>
 
@@ -1137,7 +1127,7 @@ export default function InternPipelinePage() {
                   Sprint Review Submission Desk
                 </span>
                 <h3 className="text-base font-black text-slate-900">
-                  Month {activeMilestoneModal.month_number} • Week 0{activeMilestoneModal.week_number} Deliverable
+                  Sprint Week 0{activeMilestoneModal.week_number} Deliverable
                 </h3>
               </div>
               <button

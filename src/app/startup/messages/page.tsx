@@ -221,7 +221,7 @@ export default function StartupMessagesPage() {
             <h1 className="text-xl font-black text-slate-900">Direct Workspace Messages</h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time tripartite communication channel with active apprentice candidates and platform administrators.
+            Real-time tripartite communication channel with active expert candidates and platform administrators.
           </p>
         </div>
 

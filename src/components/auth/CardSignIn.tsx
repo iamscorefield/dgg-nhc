@@ -235,7 +235,7 @@ export default function CardSignIn({ onBack, onSwitchToSignup, onSuccess }: Card
           {useOtpMode ? 'Secure Email OTP Sign-In' : 'Sign-in Gateway...'}
         </h3>
         <p className="text-white/60 text-[11px]">
-          {useOtpMode ? 'Receive a secure 6-digit login code via email.' : 'Access to Intern Workspace or Startup/Entrepreneur Portal.'}
+          {useOtpMode ? 'Receive a secure 6-digit login code via email.' : 'Access to Expertise Talent Workspace or Startup/Entrepreneur Portal.'}
         </p>
       </div>
 

@@ -103,7 +103,7 @@ export default function AdminLayout({
       group: 'Core Operations',
       items: [
         {
-          name: 'Master Command Terminal',
+          name: 'Admin Dashboard',
           href: '/admin',
           icon: LayoutDashboard,
           exact: true,
@@ -114,17 +114,17 @@ export default function AdminLayout({
           icon: Briefcase,
         },
         {
-          name: 'Sprint Deliverables Review',
+          name: 'Job Deliverables Review',
           href: '/admin/sprints',
           icon: GitPullRequest,
         },
         {
-          name: 'Apprentice Vault & NHC IDs',
+          name: 'Expert Directory',
           href: '/admin/interns',
           icon: Users,
         },
         {
-          name: 'Enterprise CAC Accreditation',
+          name: 'Enterprise Directory',
           href: '/admin/startups',
           icon: Building2,
         },
@@ -136,15 +136,15 @@ export default function AdminLayout({
       ],
     },
     {
-      group: 'Financial Clearing',
+      group: 'Financial Management & Audits',
       items: [
         {
-          name: '10% Escrow & Disbursements',
+          name: 'Escrow Expertise Funds',
           href: '/admin/escrow',
           icon: Lock,
         },
         {
-          name: 'Multi-Domain Affiliate Audit',
+          name: 'Affiliate Audit',
           href: '/admin/affiliates',
           icon: Share2,
         },
@@ -192,7 +192,7 @@ export default function AdminLayout({
               priority
             />
           </div>
-          <span className="font-extrabold text-sm tracking-wide">NexusHub Master Console</span>
+          <span className="font-extrabold text-sm tracking-wide">NexusHub Admin Dashboard</span>
         </div>
         <button
           type="button"
@@ -227,7 +227,7 @@ export default function AdminLayout({
                 DGG-NexusHub
               </span>
               <span className="text-[9px] font-mono uppercase font-bold text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded border border-amber-400/30 inline-block">
-                Master Clearinghouse
+                Admin Dashboard
               </span>
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function AdminLayout({
               darkMode ? 'bg-white/5 border-white/10 text-white/80' : 'bg-slate-50 border-slate-200 text-slate-700'
             }`}>
               <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span className={darkMode ? 'text-white/40 font-normal' : 'text-slate-400 font-normal'}>Node:</span>
+              <span className={darkMode ? 'text-white/40 font-normal' : 'text-slate-400 font-normal'}>Hub:</span>
               <span className="text-[#f2b42c] font-black">Lagos Core Gateway</span>
             </div>
           </div>

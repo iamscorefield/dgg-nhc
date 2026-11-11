@@ -38,7 +38,8 @@ interface TripartitePlacement {
   companyName: string;
   roleTitle: string;
   internTier: string;
-  trialDurationMonths: number;
+  trialDurationText: string;
+  trialWeeks: number;
   contractTerm: string;
   preAgreedStipend: number;
   status: string;
@@ -51,10 +52,59 @@ interface ManagedIntern {
   name: string;
   nhcId: string;
   tier: string;
+  tierLevel: 'TIER_1' | 'TIER_2' | 'TIER_3';
+  trialRunwayLabel: string;
   track: string;
   institution: string;
   attendanceScore: string;
   subdomainHandle: string;
+}
+
+const TIER_OPTIONS = [
+  {
+    id: 'TIER_3',
+    label: 'Tier 3: Nexus Pro (Zero Trial / Direct Retainer)',
+    runwayLabel: '0 WKS (Nexus Pro)',
+    trialWeeks: 0
+  },
+  {
+    id: 'TIER_2',
+    label: 'Tier 2: Acceleration (1-Week Fast-Track)',
+    runwayLabel: '1 WK (Acceleration)',
+    trialWeeks: 1
+  },
+  {
+    id: 'TIER_1',
+    label: 'Tier 1: Foundation (2-Week Trial)',
+    runwayLabel: '2 WKS (Foundation)',
+    trialWeeks: 2
+  },
+];
+
+function normalizeTier(rawTier: string = ''): { tier: string; tierLevel: 'TIER_1' | 'TIER_2' | 'TIER_3'; runwayLabel: string; trialWeeks: number } {
+  const lower = rawTier.toLowerCase();
+  if (lower.includes('tier 3') || lower.includes('pro') || lower.includes('zero trial') || lower.includes('fellow')) {
+    return {
+      tier: 'Tier 3: Nexus Pro (Zero Trial / Direct Retainer)',
+      tierLevel: 'TIER_3',
+      runwayLabel: '0 WKS (Nexus Pro)',
+      trialWeeks: 0
+    };
+  }
+  if (lower.includes('tier 2') || lower.includes('acceleration') || lower.includes('1-week') || lower.includes('associate') || lower.includes('2-month')) {
+    return {
+      tier: 'Tier 2: Acceleration (1-Week Fast-Track)',
+      tierLevel: 'TIER_2',
+      runwayLabel: '1 WK (Acceleration)',
+      trialWeeks: 1
+    };
+  }
+  return {
+    tier: 'Tier 1: Foundation (2-Week Trial)',
+    tierLevel: 'TIER_1',
+    runwayLabel: '2 WKS (Foundation)',
+    trialWeeks: 2
+  };
 }
 
 export default function AdminStartupsAndClearinghousePage() {
@@ -75,7 +125,7 @@ export default function AdminStartupsAndClearinghousePage() {
   // Admin Candidate Tier & Attendance Evaluation Modal
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [evalTargetIntern, setEvalTargetIntern] = useState<ManagedIntern | null>(null);
-  const [evalTier, setEvalTier] = useState('Associate (Intermediate: 2-month trial)');
+  const [evalTier, setEvalTier] = useState('Tier 1: Foundation (2-Week Trial)');
   const [evalAttendance, setEvalAttendance] = useState('100%');
   const [savingEvaluation, setSavingEvaluation] = useState(false);
 
@@ -145,6 +195,8 @@ export default function AdminStartupsAndClearinghousePage() {
         if (stage === 'TRIAL_ACTIVE' || p.status === 'ACTIVE') stage = 'IN_TRIAL';
         if (stage === 'HIRED_CONTRACTED' || p.status === 'COMPLETED') stage = 'RETAINED';
 
+        const tierMeta = normalizeTier(p.intern_tier || internProfile?.tier);
+
         return {
           id: p.id,
           internId: p.intern_id,
@@ -156,8 +208,9 @@ export default function AdminStartupsAndClearinghousePage() {
             ? 'D-Global Growthfield Operations'
             : startupMap.get(p.startup_id) || 'Enterprise Partner',
           roleTitle: p.role_title || 'Specialist Associate',
-          internTier: p.intern_tier || 'Associate (Intermediate: 2-month trial)',
-          trialDurationMonths: p.trial_duration_months || 2,
+          internTier: tierMeta.tier,
+          trialDurationText: tierMeta.runwayLabel,
+          trialWeeks: tierMeta.trialWeeks,
           contractTerm: p.contract_term || '1_YEAR',
           preAgreedStipend: Number(p.pre_agreed_stipend) || 150000,
           status: p.status || 'INVITED',
@@ -168,11 +221,15 @@ export default function AdminStartupsAndClearinghousePage() {
 
       const mappedInterns: ManagedIntern[] = validInterns.map((i: any) => {
         const user = profileMap.get(i.id);
+        const tierMeta = normalizeTier(i.tier);
+
         return {
           id: i.id,
           name: `${user?.first_name || 'Intern'} ${user?.last_name || ''}`.trim(),
           nhcId: i.nhc_id || 'DGG-NHC-2026',
-          tier: i.tier || 'Associate (Intermediate: 2-month trial)',
+          tier: tierMeta.tier,
+          tierLevel: tierMeta.tierLevel,
+          trialRunwayLabel: tierMeta.runwayLabel,
           track: i.specialization_track || 'Specialist Track',
           institution: i.institution || 'Academic Partner Campus',
           attendanceScore: i.sprint_attendance_score || '100%',
@@ -245,17 +302,25 @@ export default function AdminStartupsAndClearinghousePage() {
       return;
     }
 
+    const tierMeta = normalizeTier(evalTier);
+
     setInterns((prev) =>
       prev.map((item) =>
         item.id === evalTargetIntern.id
-          ? { ...item, tier: evalTier, attendanceScore: evalAttendance }
+          ? {
+              ...item,
+              tier: tierMeta.tier,
+              tierLevel: tierMeta.tierLevel,
+              trialRunwayLabel: tierMeta.runwayLabel,
+              attendanceScore: evalAttendance
+            }
           : item
       )
     );
 
     setShowEvalModal(false);
     setActionSuccessNotice(
-      `Updated ${evalTargetIntern.name}: Attendance set to ${evalAttendance}, Tier set to ${evalTier.split('(')[0].trim()}. Portfolio badges refreshed!`
+      `Updated ${evalTargetIntern.name}: Attendance set to ${evalAttendance}, Tier set to ${tierMeta.tier.split('(')[0].trim()}. Portfolio badges refreshed!`
     );
     setTimeout(() => setActionSuccessNotice(null), 4000);
   };
@@ -266,7 +331,7 @@ export default function AdminStartupsAndClearinghousePage() {
     setAssigningAdmin(true);
 
     const chosen = interns.find((i) => i.id === selectedInternId);
-    const trialMonths = chosen?.tier.includes('Fellow') ? 1 : chosen?.tier.includes('Associate') ? 2 : 3;
+    const tierMeta = normalizeTier(chosen?.tier);
 
     const { data: authData } = await supabase.auth.getUser();
     if (!authData?.user) {
@@ -281,15 +346,15 @@ export default function AdminStartupsAndClearinghousePage() {
         startup_id: authData.user.id,
         intern_id: selectedInternId,
         role_title: adminRoleTitle,
-        intern_tier: chosen?.tier || 'Apprentice (Newbie: 3-month trial)',
-        trial_duration_months: trialMonths,
+        intern_tier: tierMeta.tier,
+        trial_duration_weeks: tierMeta.trialWeeks,
         contract_term: adminContractTerm,
         pre_agreed_stipend: adminStipend,
         terms_agreed_by_startup: true,
         terms_agreed_by_intern: true,
         is_direct_admin_placement: true,
         status: 'ACTIVE',
-        pipeline_stage: 'IN_TRIAL',
+        pipeline_stage: tierMeta.tierLevel === 'TIER_3' ? 'RETAINED' : 'IN_TRIAL',
       } as any)
       .select()
       .single();
@@ -310,12 +375,13 @@ export default function AdminStartupsAndClearinghousePage() {
       subdomainHandle: chosen?.subdomainHandle || 'apprentice',
       companyName: 'D-Global Growthfield Operations',
       roleTitle: adminRoleTitle,
-      internTier: chosen?.tier || 'Apprentice',
-      trialDurationMonths: trialMonths,
+      internTier: tierMeta.tier,
+      trialDurationText: tierMeta.runwayLabel,
+      trialWeeks: tierMeta.trialWeeks,
       contractTerm: adminContractTerm,
       preAgreedStipend: adminStipend,
       status: 'ACTIVE',
-      pipelineStage: 'IN_TRIAL',
+      pipelineStage: tierMeta.tierLevel === 'TIER_3' ? 'RETAINED' : 'IN_TRIAL',
       isDirectAdminPlacement: true,
     };
 
@@ -378,20 +444,21 @@ export default function AdminStartupsAndClearinghousePage() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans p-2 sm:p-4">
+      {/* Top Banner */}
       <div className="bg-gradient-to-r from-[#512d7c] via-[#3a1d5a] to-[#ff7a00] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="space-y-2 relative z-10 max-w-2xl">
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             <ShieldCheck className="w-3.5 h-3.5 text-[#f2b42c]" />
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-200">
-              Master Admin Tripartite Clearinghouse
+              Master Admin Tripartite Clearinghouse // Agile 3-Tier Governance
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             Placement Clearance & Academic Governance
           </h1>
           <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-            Authorize pre-sealed enterprise agreements (1-3 Mo Runway, 6M/1Y/2Y Term, Locked Salary), govern candidate sprint attendance badges, or assign candidates directly to DGG internal projects.
+            Authorize pre-sealed agreements (Tier 1: 2-Wk, Tier 2: 1-Wk, Tier 3: Nexus Pro), govern candidate sprint attendance badges, or assign candidates directly to DGG internal projects.
           </p>
         </div>
 
@@ -432,6 +499,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Tab Navigation */}
       <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 text-xs font-mono overflow-x-auto">
         <button
           type="button"
@@ -486,11 +554,12 @@ export default function AdminStartupsAndClearinghousePage() {
         </button>
       </div>
 
+      {/* Tab 1: Pending Offers Clearance */}
       {activeTab === 'CLEARANCE_GATE' && (
         <div className="space-y-4">
           {pendingClearance.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-xs text-slate-400 font-mono">
-              Zero pending contracts. All extended enterprise offers are cleared or in negotiation.
+              Zero pending contracts. All extended enterprise offers are cleared or in active sprints.
             </div>
           ) : (
             <div className="space-y-4">
@@ -517,8 +586,8 @@ export default function AdminStartupsAndClearinghousePage() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-xs">
                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                        <span className="block text-[8px] uppercase text-slate-400 font-bold">Free Runway</span>
-                        <span className="font-black text-emerald-700">{plc.trialDurationMonths} Mo Trial</span>
+                        <span className="block text-[8px] uppercase text-slate-400 font-bold">Trial Runway</span>
+                        <span className="font-black text-emerald-700">{plc.trialDurationText}</span>
                       </div>
                       <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-[#512d7c]">
                         <span className="block text-[8px] uppercase font-bold text-purple-600">Contract Term</span>
@@ -537,7 +606,7 @@ export default function AdminStartupsAndClearinghousePage() {
                         Platform Facilitation Surcharge (10%): <strong className="text-slate-900">₦{(plc.preAgreedStipend * 0.1).toLocaleString()} / mo</strong>
                       </div>
                       <span className="text-[10px] text-slate-400 block">
-                        Both intern and startup signed terms. Approving will cryptographically unlock the active sprint runway.
+                        Both intern and startup signed terms. Approving will cryptographically seal and unlock the sprint workspace.
                       </span>
                     </div>
 
@@ -568,6 +637,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Tab 2: Active Placements */}
       {activeTab === 'ACTIVE_PLACEMENTS' && (
         <div className="space-y-4">
           {activeSprints.length === 0 ? (
@@ -606,7 +676,7 @@ export default function AdminStartupsAndClearinghousePage() {
                       </div>
                       <div className="text-right">
                         <span className="block text-[8px] uppercase text-slate-400">Runway</span>
-                        <span className="font-bold text-amber-700">{plc.trialDurationMonths} Mo Trial</span>
+                        <span className="font-bold text-amber-700">{plc.trialDurationText}</span>
                       </div>
                     </div>
                   </div>
@@ -643,6 +713,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Tab 3: Candidate Tiers & Attendance (Directly Controls Card 1 & Card 4) */}
       {activeTab === 'EVALUATE_INTERNS' && (
         <div className="space-y-4">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
@@ -682,7 +753,7 @@ export default function AdminStartupsAndClearinghousePage() {
                       <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-[#512d7c]">
                         <span className="block text-[8px] uppercase font-bold text-purple-600">Card 4: Tier Runway</span>
                         <span className="font-black text-xs">
-                          {cand.tier.includes('Fellow') ? '1 MO' : cand.tier.includes('Associate') ? '2 MO' : '3 MO'} ({cand.tier.split('(')[0].trim()})
+                          {cand.trialRunwayLabel}
                         </span>
                       </div>
 
@@ -708,6 +779,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Tab 4: Direct Admin Internal Placements */}
       {activeTab === 'DIRECT_ADMIN' && (
         <div className="space-y-4">
           {directAdminPlacements.length === 0 ? (
@@ -738,7 +810,7 @@ export default function AdminStartupsAndClearinghousePage() {
                       <span className="font-black text-slate-900">{plc.contractTerm.replace('_', ' ')}</span>
                     </div>
                     <div className="text-right">
-                      <span className="block text-[8px] text-slate-400">Monthly Compensation</span>
+                      <span className="block text-[8px] text-slate-400">Compensation</span>
                       <span className="font-black text-emerald-700">₦{plc.preAgreedStipend.toLocaleString()} / mo</span>
                     </div>
                   </div>
@@ -766,6 +838,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Modal: Evaluation Modal (Candidate Tier & Attendance Badges) */}
       {showEvalModal && evalTargetIntern && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200 text-xs">
@@ -790,22 +863,18 @@ export default function AdminStartupsAndClearinghousePage() {
             <form onSubmit={handleSaveEvaluation} className="space-y-4">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">
-                  Card 4: Evaluated Incubation Tier
+                  Card 4: Evaluated Progression Tier
                 </label>
                 <select
                   value={evalTier}
                   onChange={(e) => setEvalTier(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
                 >
-                  <option value="Apprentice (Newbie: 3-month trial)">
-                    Apprentice &bull; 3 Months Free Runway
-                  </option>
-                  <option value="Associate (Intermediate: 2-month trial)">
-                    Associate &bull; 2 Months Free Runway
-                  </option>
-                  <option value="Fellow (Pro: 1-month fast-track)">
-                    Fellow &bull; 1 Month Free Fast-Track
-                  </option>
+                  {TIER_OPTIONS.map((t) => (
+                    <option key={t.id} value={t.label}>
+                      {t.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -823,7 +892,7 @@ export default function AdminStartupsAndClearinghousePage() {
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-black text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
                   />
                   <div className="flex space-x-1 shrink-0">
-                    {['100%', '98%', '95%'].map((val) => (
+                    {['100%', '98%', '95%', '87%'].map((val) => (
                       <button
                         key={val}
                         type="button"
@@ -850,6 +919,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Modal: Direct Admin Placement */}
       {showDirectModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200 text-xs">
@@ -937,6 +1007,7 @@ export default function AdminStartupsAndClearinghousePage() {
         </div>
       )}
 
+      {/* Modal: Admin Endorsement Review */}
       {showReviewModal && targetPlacement && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200 text-xs">

@@ -23,7 +23,9 @@ import {
   Tag,
   Target,
   Eye,
-  X
+  X,
+  Zap,
+  Award
 } from 'lucide-react';
 
 interface LivePlacement {
@@ -88,7 +90,8 @@ export default function InternIncubationOffersPage() {
     name: 'Apprentice Candidate',
     track: 'Engineering',
     nhcId: 'DGG-NHC-2026',
-    tier: 'Associate (Intermediate: 2-month trial)',
+    tier: 'Tier 1: Foundation (2-Week Trial)',
+    completedJobs: 0,
   });
 
   const loadData = async () => {
@@ -101,7 +104,7 @@ export default function InternIncubationOffersPage() {
     const uid = authData.user.id;
     setCurrentUserId(uid);
 
-    // 1. Fetch Intern Profile Information
+    // 1. Fetch Intern Profile Information & Completed Projects count
     const { data: profile } = await supabase
       .from('profiles')
       .select('first_name, last_name')
@@ -110,16 +113,27 @@ export default function InternIncubationOffersPage() {
 
     const { data: intern } = await supabase
       .from('intern_profiles')
-      .select('nhc_id, specialization_track, tier')
+      .select('nhc_id, specialization_track, tier, completed_projects_count')
       .eq('id', uid)
       .maybeSingle();
+
+    const completed = intern?.completed_projects_count || 0;
+    let resolvedTier = 'Tier 1: Foundation (2-Week Trial)';
+    if (completed >= 4) {
+      resolvedTier = 'Tier 3: Nexus Pro (Zero Trial / Instant Deploy)';
+    } else if (completed >= 2) {
+      resolvedTier = 'Tier 2: Acceleration (1-Week Fast-Track Trial)';
+    } else if (intern?.tier) {
+      resolvedTier = intern.tier;
+    }
 
     if (profile) {
       setInternInfo({
         name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Apprentice Candidate',
         track: intern?.specialization_track || 'Engineering Track',
         nhcId: intern?.nhc_id || 'DGG-NHC-2026',
-        tier: intern?.tier || 'Associate (Intermediate: 2-month trial)',
+        tier: resolvedTier,
+        completedJobs: completed,
       });
     }
 
@@ -208,11 +222,14 @@ export default function InternIncubationOffersPage() {
     if (!selectedOffer) return;
     setAcceptingOffer(true);
 
+    const isPro = internInfo.tier.toLowerCase().includes('tier 3') || internInfo.tier.toLowerCase().includes('pro');
+    const nextStage = isPro ? 'RETAINED' : 'IN_TRIAL';
+
     const { error } = await supabase
       .from('placements')
       .update({
         status: 'ACTIVE',
-        pipeline_stage: 'IN_TRIAL',
+        pipeline_stage: nextStage,
         terms_agreed_by_intern: true,
       })
       .eq('id', selectedOffer.id);
@@ -228,7 +245,7 @@ export default function InternIncubationOffersPage() {
     setPlacements((prev) =>
       prev.map((p) =>
         p.id === selectedOffer.id
-          ? { ...p, status: 'ACTIVE', pipeline_stage: 'IN_TRIAL', terms_agreed_by_intern: true }
+          ? { ...p, status: 'ACTIVE', pipeline_stage: nextStage, terms_agreed_by_intern: true }
           : p
       )
     );
@@ -283,7 +300,7 @@ export default function InternIncubationOffersPage() {
   }
 
   const activePlacements = placements.filter(
-    (p) => p.status === 'ACTIVE' || p.pipeline_stage === 'IN_TRIAL'
+    (p) => p.status === 'ACTIVE' || p.pipeline_stage === 'IN_TRIAL' || p.pipeline_stage === 'RETAINED'
   );
 
   const filteredJobs = startupJobs.filter((j) => {
@@ -297,7 +314,7 @@ export default function InternIncubationOffersPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto font-sans p-2 sm:p-4">
-      {/* Top Banner */}
+      {/* Top Banner with Dynamic Tier Status */}
       <div className="bg-gradient-to-r from-[#512d7c] via-[#3a1d5a] to-[#ff7a00] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="space-y-2 relative z-10 max-w-2xl">
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
@@ -307,11 +324,22 @@ export default function InternIncubationOffersPage() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Enterprise Incubation Hub
+            Enterprise Job Offer Hub
           </h1>
           <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
             Welcome, <span className="font-bold text-white">{internInfo.name}</span>. Review direct offers extended by verified startups or inspect company dossiers and apply for active roles.
           </p>
+
+          {/* Tier Progression Badge */}
+          <div className="pt-2 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold bg-[#f2b42c] text-[#512d7c] px-3 py-1 rounded-xl shadow-xs flex items-center space-x-1.5 font-mono">
+              <Award className="w-3.5 h-3.5" />
+              <span>{internInfo.tier}</span>
+            </span>
+            <span className="text-[10px] font-mono bg-white/10 px-2.5 py-1 rounded-xl border border-white/20 text-white/90">
+              {internInfo.completedJobs} Verified Startup Projects Cleared
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center space-x-3 relative z-10">
@@ -366,7 +394,7 @@ export default function InternIncubationOffersPage() {
               <span>Active Roles Posted by Startups</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Explore open apprenticeship positions and review company backgrounds before applying.
+              Explore open expertise positions and review company backgrounds before applying.
             </p>
           </div>
 
@@ -484,7 +512,7 @@ export default function InternIncubationOffersPage() {
               const company = placement.startup_profiles?.company_name || 'Enterprise Partner';
               const rc = placement.startup_profiles?.rc_number || 'RC-VERIFIED';
               const stipendVal = Number(placement.pre_agreed_stipend || 0);
-              const isActive = placement.status === 'ACTIVE' || placement.pipeline_stage === 'IN_TRIAL';
+              const isActive = placement.status === 'ACTIVE' || placement.pipeline_stage === 'IN_TRIAL' || placement.pipeline_stage === 'RETAINED';
 
               return (
                 <div
@@ -503,7 +531,7 @@ export default function InternIncubationOffersPage() {
                           isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                         }`}
                       >
-                        {isActive ? 'ACTIVE TRIAL LOCKED' : 'OFFER PENDING REVIEW'}
+                        {isActive ? 'ACTIVE SPRINT LOCKED' : 'OFFER PENDING REVIEW'}
                       </span>
                     </div>
 
@@ -520,11 +548,11 @@ export default function InternIncubationOffersPage() {
                         <span className="font-bold text-emerald-700">₦{stipendVal.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500 font-sans">Proof-of-Value Runway:</span>
-                        <span className="font-bold text-slate-800">{placement.intern_tier}</span>
+                        <span className="text-slate-500 font-sans">Evaluation Track:</span>
+                        <span className="font-bold text-[#512d7c]">{placement.intern_tier || internInfo.tier}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500 font-sans">Post-Trial Term:</span>
+                        <span className="text-slate-500 font-sans">Contract Term:</span>
                         <span className="font-bold text-slate-800">{placement.contract_term.replace('_', ' ')}</span>
                       </div>
                     </div>
@@ -585,7 +613,6 @@ export default function InternIncubationOffersPage() {
 
             {/* Content Details */}
             <div className="space-y-4 text-xs">
-              {/* Founder / Leadership */}
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center space-x-3">
                 <div className="w-9 h-9 rounded-xl bg-[#512d7c] text-white flex items-center justify-center shrink-0">
                   <User className="w-4 h-4" />
@@ -596,7 +623,6 @@ export default function InternIncubationOffersPage() {
                 </div>
               </div>
 
-              {/* Company Profile & Mission */}
               <div className="space-y-1">
                 <span className="font-bold text-slate-700 block">Company Profile & Mission Overview</span>
                 <p className="text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
@@ -604,7 +630,6 @@ export default function InternIncubationOffersPage() {
                 </p>
               </div>
 
-              {/* Core Services & Deliverables */}
               <div className="space-y-1.5">
                 <span className="font-bold text-slate-700 flex items-center space-x-1">
                   <Tag className="w-3.5 h-3.5 text-[#512d7c]" />
@@ -626,7 +651,6 @@ export default function InternIncubationOffersPage() {
                 )}
               </div>
 
-              {/* Target Audience & Client Focus */}
               <div className="space-y-1.5">
                 <span className="font-bold text-slate-700 flex items-center space-x-1">
                   <Target className="w-3.5 h-3.5 text-[#ff7a00]" />
@@ -720,10 +744,16 @@ export default function InternIncubationOffersPage() {
                     <span className="text-slate-500">Track:</span>
                     <span className="font-bold text-slate-900">{applyingJob.track}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Your Current Tier:</span>
+                    <span className="font-mono font-bold text-[#f2b42c] bg-purple-950/60 px-2 py-0.5 rounded">
+                      {internInfo.tier}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="p-3.5 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-[#512d7c] leading-relaxed">
-                  Your verified NHC profile ({internInfo.nhcId}) will be submitted for review. Once shortlisted, the startup can immediately extend an incubation contract.
+                  Your verified NHC profile ({internInfo.nhcId}) will be submitted for review. Once shortlisted, the startup can immediately extend an incubation contract governed by your current performance tier.
                 </div>
 
                 <button
@@ -765,7 +795,7 @@ export default function InternIncubationOffersPage() {
             {acceptedSuccess ? (
               <div className="text-center py-6 space-y-2">
                 <Check className="w-12 h-12 text-emerald-600 mx-auto animate-bounce" />
-                <h4 className="text-base font-black text-slate-900">Trial Placement Authorized!</h4>
+                <h4 className="text-base font-black text-slate-900">Placement Authorized!</h4>
                 <p className="text-xs text-slate-500">
                   You are now paired with {selectedOffer.startup_profiles?.company_name}. Redirecting to your active sprint runway...
                 </p>
@@ -790,13 +820,19 @@ export default function InternIncubationOffersPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Post-Trial Term:</span>
+                    <span className="text-slate-500">Performance Tier:</span>
+                    <span className="font-bold text-[#f2b42c] bg-purple-900 px-2 py-0.5 rounded">
+                      {selectedOffer.intern_tier || internInfo.tier}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Contract Term:</span>
                     <span className="font-bold text-slate-900">{selectedOffer.contract_term.replace('_', ' ')}</span>
                   </div>
                 </div>
 
                 <div className="p-3.5 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-[#512d7c] leading-relaxed">
-                  By accepting, you confirm your availability to deliver 4 weekly product milestones. Monthly stipends lock into escrow and release automatically upon supervisor sprint sign-off.
+                  By accepting, you confirm your availability to deliver scheduled sprint deliverables. Monthly stipends are locked into escrow and released automatically upon supervisor milestone sign-off.
                 </div>
 
                 <button
@@ -804,7 +840,7 @@ export default function InternIncubationOffersPage() {
                   disabled={acceptingOffer}
                   className="w-full py-3.5 bg-[#512d7c] hover:bg-[#3e215f] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {acceptingOffer ? 'Authorizing Contract...' : 'Accept Trial Placement ➔'}
+                  {acceptingOffer ? 'Authorizing Contract...' : 'Accept Placement ➔'}
                 </button>
               </form>
             )}

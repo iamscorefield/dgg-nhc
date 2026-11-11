@@ -113,7 +113,7 @@ export default function Card2StartupSignup({ onBack, onSuccess }: Card2StartupSi
           </p>
           <p className="text-white/60 text-[11px] leading-relaxed pt-1 border-t border-white/10">
             A secure Google Meet invitation has been dispatched to{' '}
-            <span className="font-bold text-white">{companyData.corporateEmail}</span>. Your employer hiring terminal will unlock following this briefing.
+            <span className="font-bold text-white">{companyData.corporateEmail}</span>. Your employer hiring Dashboard will unlock following this briefing.
           </p>
         </div>
         <button
@@ -350,7 +350,7 @@ export default function Card2StartupSignup({ onBack, onSuccess }: Card2StartupSi
                 <span>MANDATORY INTAKE ORIENTATION & ASSESSMENT BRIEFING</span>
               </div>
               <p className="text-[11px] text-white/60">
-                Select a 20-minute Google Meet schedule with DGG Leadership before terminal access is authorized.
+                Select a 20-minute Google Meet schedule with DGG Leadership before Dashboard access is authorized.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 <div>

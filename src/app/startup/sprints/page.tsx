@@ -391,10 +391,10 @@ export default function StartupSprintReviewDesk() {
         <div>
           <div className="flex items-center space-x-2">
             <FolderGit2 className="w-5 h-5 text-[#512d7c]" />
-            <h1 className="text-xl font-black text-slate-900">Sprint Review Desk</h1>
+            <h1 className="text-xl font-black text-slate-900">Milestone/Sprint Review Desk</h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Inspect live apprentice deliverables, review punch card attendance logs, and assign weekly sprint requirements.
+            Inspect live expert deliverables, review punch card attendance logs, and assign weekly sprint requirements.
           </p>
         </div>
 
@@ -409,7 +409,7 @@ export default function StartupSprintReviewDesk() {
               className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs"
             >
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Rate Apprentice</span>
+              <span>Rate Expert</span>
             </button>
           )}
 
@@ -429,7 +429,7 @@ export default function StartupSprintReviewDesk() {
           <div>
             <h2 className="text-sm font-extrabold text-slate-900 flex items-center space-x-2">
               <Clock className="w-4 h-4 text-[#512d7c]" />
-              <span>Verified Apprentice Attendance Feed</span>
+              <span>Verified Expert Attendance Feed</span>
             </h2>
             <p className="text-[11px] text-slate-500">
               Live timestamps and commit notes logged directly from candidates' punch cards.
@@ -443,7 +443,7 @@ export default function StartupSprintReviewDesk() {
         <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
           {attendanceLogs.length === 0 ? (
             <div className="h-24 flex items-center justify-center border border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs">
-              No apprentice attendance sessions recorded yet.
+              No expert attendance sessions recorded yet.
             </div>
           ) : (
             <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
@@ -818,10 +818,10 @@ export default function StartupSprintReviewDesk() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-mono uppercase font-bold text-amber-600">
-                  Verified Apprentice Endorsement
+                  Verified Expert Endorsement
                 </span>
                 <h3 className="text-base font-black text-slate-900">
-                  Rate & Endorse Apprentice
+                  Rate & Endorse Expert Performance
                 </h3>
               </div>
               <button

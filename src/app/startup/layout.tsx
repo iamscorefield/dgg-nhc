@@ -99,12 +99,12 @@ export default function StartupLayout({
           exact: true,
         },
         {
-          name: 'Intern Directory & Negotiation',
+          name: 'Talent Expert Directory',
           href: '/startup/directory',
           icon: Users,
         },
         {
-          name: 'Post Internship Role',
+          name: 'Post Job / Role Listing',
           href: '/startup/post-role',
           icon: Briefcase,
         },
@@ -114,17 +114,17 @@ export default function StartupLayout({
       heading: 'Talent Workstation',
       items: [
         {
-          name: 'Hiring Pipeline (Kanban)',
+          name: 'Hiring Pipeline',
           href: '/startup/pipeline',
           icon: KanbanSquare,
         },
         {
-          name: 'Sprint Review Desk',
+          name: 'Milestone Desk',
           href: '/startup/sprints',
           icon: FileCheck,
         },
         {
-          name: 'Direct Workspace Messages',
+          name: 'Direct Messages',
           href: '/startup/messages',
           icon: MessageSquare,
         },
@@ -134,17 +134,17 @@ export default function StartupLayout({
       heading: 'Finance & Mediation',
       items: [
         {
-          name: 'Escrow & Stipends Hub',
+          name: 'Escrow Funds Management',
           href: '/startup/escrow',
           icon: Wallet,
         },
         {
-          name: 'Dispute & Mediation Desk',
+          name: 'Dispute & Support Desk',
           href: '/startup/support',
           icon: LifeBuoy,
         },
         {
-          name: 'Company Profile & Verification',
+          name: 'Profile & Settings',
           href: '/startup/profile',
           icon: Building,
         },

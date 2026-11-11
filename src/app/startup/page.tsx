@@ -99,11 +99,11 @@ export default function StartupOverviewPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full border border-white/20 text-[10px] font-mono font-bold uppercase tracking-wider text-amber-200">
             <Building className="w-3.5 h-3.5" />
-            <span>Incubation Management Console</span>
+            <span>Startup Dashboard</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Enterprise Talent Desk</h1>
           <p className="text-xs sm:text-sm text-white/80 max-w-xl">
-            Monitor zero-risk apprentice trials, inspect weekly sprint deliverables, and manage milestone approvals.
+            Monitor zero-risk talent trials, inspect weekly milestone deliverables, and manage approval workflows.
           </p>
         </div>
 
@@ -122,16 +122,16 @@ export default function StartupOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-mono uppercase font-bold">Active Runway Trials</span>
+            <span className="text-[10px] font-mono uppercase font-bold">Active Talent Trials</span>
             <Clock className="w-4 h-4 text-purple-600" />
           </div>
           <div className="text-3xl font-black text-slate-900">{metrics.activeTrials}</div>
-          <span className="text-[11px] text-emerald-600 font-bold block">Apprentices in active evaluation</span>
+          <span className="text-[11px] text-emerald-600 font-bold block">Talent's Expert in active evaluation</span>
         </div>
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-mono uppercase font-bold">Pending Sprint Reviews</span>
+            <span className="text-[10px] font-mono uppercase font-bold">Pending Milestone Reviews</span>
             <FileCheck className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-3xl font-black text-slate-900">{metrics.pendingMilestones}</div>
@@ -151,12 +151,12 @@ export default function StartupOverviewPage() {
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-mono uppercase font-bold">Escrow Funds Reserved</span>
+            <span className="text-[10px] font-mono uppercase font-bold">Secured Funds Reserved</span>
             <Wallet className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-black font-mono text-slate-900">₦{metrics.escrowLocked.toLocaleString()}</div>
           <Link href="/startup/escrow" className="text-[11px] text-emerald-600 font-bold hover:underline block">
-            View escrow ledger ➔
+            View Escrow Accountbook ➔
           </Link>
         </div>
       </div>
@@ -169,7 +169,7 @@ export default function StartupOverviewPage() {
               <KanbanSquare className="w-4 h-4 text-[#512d7c]" />
               <span>Hiring Pipeline Workflow</span>
             </h3>
-            <span className="text-[10px] font-mono font-bold text-slate-400">DRAG & DROP KANBAN</span>
+            <span className="text-[10px] font-mono font-bold text-slate-400">DRAG & DROP WORKFLOW</span>
           </div>
           <p className="text-xs text-slate-500 leading-relaxed">
             Move talent from initial bookmark through extended offers, active trial runs, and post-trial retained contracts.

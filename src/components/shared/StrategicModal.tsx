@@ -43,7 +43,7 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   1. Mandatory Certificate ID Verification & Eligibility
                 </h4>
                 <p>
-                   <strong className="text-slate-800">Identity & Credential Verification:</strong> To safeguard ecosystem security and prevent unauthorized registrations, all intern and apprentice sign-ups require a valid, verified DGG Certificate ID as the primary means of identity and skill verification.
+                   <strong className="text-slate-800">Identity & Credential Verification:</strong> To safeguard ecosystem security and prevent unauthorized registrations, all Expert and Talent sign-ups require a valid, verified DGG Certificate ID as the primary means of identity and skill verification.
                 </p>
                 <p>
                    <strong className="text-slate-800">Zero Certificate Cost & Enrollment Pathway:</strong> There are no payment encumbrances or fees required for verification. Individuals who do not currently possess a valid DGG Certificate ID must enroll in our Learning Management System (LMS) courses or join our upcoming cohort internship programs to acquire certified status before onboarding onto the talent placement network.
@@ -58,13 +58,13 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   2. Tri-Party Incubation & Operational Standards
                 </h4>
                 <p>
-                   <strong className="text-slate-800">Zero-Cost Labor Incubation:</strong> Participating startups receive vetted intern labor during the initial 3-month incubation cycle under structured developmental guidelines.
+                   <strong className="text-slate-800">Zero-Cost Labor Incubation:</strong> Participating startups receive vetted talent labor during the initial 1-2 weeks incubation cycle under structured developmental guidelines.
                 </p>
                 <p>
                    <strong className="text-slate-800">Facilitation & Administrative Surcharge:</strong> All post-incubation retention contracts, milestone disbursements, and formal arrangements must be brokered through the platform&apos;s secure negotiation desks under administrative oversight, subject to the standard 10% platform sustainability surcharge.
                 </p>
                 <p>
-                   <strong className="text-slate-800">Conduct & Compliance:</strong> Both startups and interns must maintain professional conduct, respect intellectual property rights, and adhere to agreed milestone timelines.
+                   <strong className="text-slate-800">Conduct & Compliance:</strong> Both startups and talents Expert must maintain professional conduct, respect intellectual property rights, and adhere to agreed milestone timelines.
                 </p>
               </div>
 
@@ -73,7 +73,7 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   3. Subdomain Portfolio & Professional Identity Protocols
                 </h4>
                 <p>
-                   <strong className="text-slate-800">Dedicated Portfolio Nodes:</strong> Verified interns are granted a professional subdomain portfolio handle at <code className="bg-purple-50 text-[#512d7c] px-1 py-0.5 rounded font-mono">nexushub.dglobalgrowthfield.com/portfolio/username</code> to showcase verified achievements and project milestones.
+                   <strong className="text-slate-800">Dedicated Portfolio Nodes:</strong> Verified talents are granted a professional subdomain portfolio handle at <code className="bg-purple-50 text-[#512d7c] px-1 py-0.5 rounded font-mono">nexushub.dglobalgrowthfield.com/portfolio/username</code> to showcase verified achievements and project milestones.
                 </p>
                 <p>
                    <strong className="text-slate-800">Accuracy of Records:</strong> Members are bound to maintain accurate professional records, project submissions, and employment history. Impersonation of enterprise partners or falsification of project deliverables is strictly prohibited.
@@ -100,7 +100,7 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                    <strong className="text-slate-800">Proprietary Frameworks:</strong> All proprietary software architectures, community frameworks, branding elements, and course materials remain the exclusive intellectual property of D Global Growthfield (DGG).
                 </p>
                 <p>
-                   <strong className="text-slate-800">Limitation of Liability:</strong> The platform acts as a secure intermediary and vetting bridge; while rigorous verification protocols are enforced, DGG is not directly liable for private external contractual disputes between independent startups and matched interns beyond the platform&apos;s mediation framework.
+                   <strong className="text-slate-800">Limitation of Liability:</strong> The platform acts as a secure intermediary and vetting bridge; while rigorous verification protocols are enforced, DGG is not directly liable for private external contractual disputes between independent startups and matched talents expert beyond the platform&apos;s mediation framework.
                 </p>
               </div>
 
@@ -109,7 +109,7 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   6. On-Platform Communication & Interaction Protocols
                 </h4>
                 <p>
-                   <strong className="text-slate-800">Centralized Engagement:</strong> To maintain transparency, auditability, and security, all professional communications, milestone negotiations, and collaborative project discussions between startups and interns must be conducted directly within the platform&apos;s official communication channels and negotiation rooms.
+                   <strong className="text-slate-800">Centralized Engagement:</strong> To maintain transparency, auditability, and security, all professional communications, milestone negotiations, and collaborative project discussions between startups and talents expert must be conducted directly within the platform&apos;s official communication channels and negotiation rooms.
                 </p>
                 <p>
                    <strong className="text-slate-800">Boundary Management:</strong> Participants are encouraged to keep core professional exchanges inside the platform ecosystem to ensure proper record-keeping and administrative support when needed.
@@ -135,10 +135,10 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
                   Phase 1: Access, Account Creation & Authentication
                 </h4>
                 <p>
-                  <strong className="text-slate-800">Unified Onboarding:</strong> New participants select their designated portal track upon sign-up—either registering as an Enterprise/Startup partner or an Apprentice/Intern candidate.
+                  <strong className="text-slate-800">Unified Onboarding:</strong> New participants select their designated portal track upon sign-up—either registering as an Enterprise/Startup partner or an Expert Talent candidate.
                 </p>
                 <p>
-                    <strong className="text-slate-800">Credentials & Verification:</strong> Interns authenticate using their verified DGG Certificate ID, while Startups register using their official corporate identifiers (RC numbers) to establish immediate platform trust.
+                    <strong className="text-slate-800">Credentials & Verification:</strong> Experts authenticate using their verified DGG Certificate ID, while Startups register using their official corporate identifiers (RC numbers) to establish immediate platform trust.
                 </p>
                 <p>
                    <strong className="text-slate-800">Secure Sessions:</strong> Once authenticated via secure session management, users instantly claim their personalized workspace dashboard and professional profile handle.
@@ -177,7 +177,7 @@ export default function StrategicModal({ type, onClose }: StrategicModalProps) {
 
               <div className="border-l-2 border-emerald-500 pl-3 py-1 space-y-1">
                 <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide">
-                  Phase 4: 3-Month Zero-Cost Incubation & Workspace Collaboration
+                  Phase 4: 1-2 weeks Zero-Cost Incubation & Workspace Collaboration
                 </h4>
                 <p>
                    <strong className="text-slate-800">Active Placement:</strong> Matched teams operate within dedicated workspace channels, utilizing sprint review desks to track weekly deliverables and milestones.

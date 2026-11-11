@@ -508,7 +508,7 @@ export default function InternProfileManagementPage() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Student Profile, Holographic ID & Reviews
+            Expert Profile, Settings, Holographic ID & Reviews
           </h1>
           <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
             Upload your verified headshot, configure custom tracks, embed your elevator video pitch, and manage capstones directly with database synchronization.

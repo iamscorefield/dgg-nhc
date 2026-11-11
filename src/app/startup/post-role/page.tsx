@@ -12,9 +12,8 @@ import {
   Clock,
   DollarSign,
   RefreshCw,
-  AlertCircle,
   X,
-  Users
+  Award
 } from 'lucide-react';
 
 interface JobListing {
@@ -23,6 +22,7 @@ interface JobListing {
   title: string;
   track: string;
   stipend: number;
+  trialTier: string;
   workMode: string;
   location: string;
   applicantsCount: number;
@@ -44,9 +44,9 @@ export default function PostInternshipRolePage() {
     title: '',
     track: 'TRK-01: Full Stack Development',
     stipend: '100000',
+    trialTier: 'Tier 1: Foundation (2-Week Trial)',
     workMode: 'Remote',
     location: 'Remote',
-    duration: '3 Months Incubation',
     description: '',
     requirements: '',
   });
@@ -61,7 +61,7 @@ export default function PostInternshipRolePage() {
 
     const uid = authData.user.id;
 
-    // 1. Fetch live jobs posted by this startup
+    // Fetch live roles posted by this startup
     const { data: listings, error } = await supabase
       .from('startup_jobs')
       .select('*')
@@ -76,7 +76,6 @@ export default function PostInternshipRolePage() {
     }
 
     if (listings && listings.length > 0) {
-      // 2. Fetch live applicant counts from placements / applications if available
       const { data: applications } = await supabase
         .from('placements')
         .select('id, role_title')
@@ -100,6 +99,7 @@ export default function PostInternshipRolePage() {
           title: j.role_title,
           track: j.track || 'Specialist Track',
           stipend: Number(j.stipend_amount || 0),
+          trialTier: j.trial_tier || 'Tier 1: Foundation (2-Week Trial)',
           workMode: j.work_mode || 'Remote',
           location: j.location || 'Remote',
           applicantsCount: count,
@@ -132,7 +132,7 @@ export default function PostInternshipRolePage() {
 
     const { data: authData } = await supabase.auth.getUser();
     if (!authData?.user) {
-      alert('You must be logged in as an enterprise to post a role.');
+      alert('You must be authenticated to post a role.');
       setSubmitting(false);
       return;
     }
@@ -153,6 +153,7 @@ export default function PostInternshipRolePage() {
         role_title: roleData.title,
         track: finalTrack,
         stipend_amount: stipendNum,
+        trial_tier: roleData.trialTier,
         work_mode: roleData.workMode,
         location: roleData.location,
         description: roleData.description,
@@ -177,6 +178,7 @@ export default function PostInternshipRolePage() {
       title: data.role_title,
       track: data.track,
       stipend: stipendNum,
+      trialTier: data.trial_tier || roleData.trialTier,
       workMode: data.work_mode,
       location: data.location,
       applicantsCount: 0,
@@ -192,9 +194,9 @@ export default function PostInternshipRolePage() {
       title: '',
       track: 'TRK-01: Full Stack Development',
       stipend: '100000',
+      trialTier: 'Tier 1: Foundation (2-Week Trial)',
       workMode: 'Remote',
       location: 'Remote',
-      duration: '3 Months Incubation',
       description: '',
       requirements: '',
     });
@@ -266,14 +268,14 @@ export default function PostInternshipRolePage() {
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-[#f2b42c]" />
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-200">
-              Campus Talent Ingestion
+              Talent Intake & Agile 3-Tier Postings
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Post Internship & Apprenticeship Roles
+            Post Job Offer Roles
           </h1>
           <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-            Broadcast openings to hundreds of pre-vetted campus talent. Listings automatically connect to DGG milestone escrow agreements.
+            Broadcast openings to vetted talent. Choose target intake speeds: <strong>Tier 1</strong> (2-Week Trial), <strong>Tier 2</strong> (1-Week Fast-Track), or <strong>Tier 3 Nexus Pro</strong> (Direct Retainer).
           </p>
         </div>
 
@@ -292,20 +294,20 @@ export default function PostInternshipRolePage() {
       {successNotice && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Role published successfully! Now visible to matching apprentice candidates.</span>
+          <span>Role published successfully! Visible to matching candidates across the 3-Tier roster.</span>
         </div>
       )}
 
-      {/* Role Creation Form (Expandable) */}
+      {/* Role Creation Form */}
       {showForm && (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h2 className="text-base font-extrabold text-slate-900 flex items-center space-x-2">
               <Briefcase className="w-5 h-5 text-[#512d7c]" />
-              <span>Create Apprenticeship Opportunity</span>
+              <span>Create Job Offer Role</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Specify skills, scope of deliverables, and stipend terms for candidates.
+              Specify skills, scope of deliverables, trial duration, and monthly retainer terms.
             </p>
           </div>
 
@@ -316,7 +318,7 @@ export default function PostInternshipRolePage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Junior Next.js Full Stack Apprentice"
+                  placeholder="e.g. Full Stack Next.js Apprentice"
                   value={roleData.title}
                   onChange={(e) => setRoleData({ ...roleData, title: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
@@ -324,7 +326,7 @@ export default function PostInternshipRolePage() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-slate-700 font-bold">Incubation Track</label>
+                <label className="block text-slate-700 font-bold">Specialization Track</label>
                 <select
                   value={roleData.track}
                   onChange={(e) => setRoleData({ ...roleData, track: e.target.value })}
@@ -334,7 +336,7 @@ export default function PostInternshipRolePage() {
                   <option value="TRK-02: Data Analytics">TRK-02: Data Analytics</option>
                   <option value="TRK-03: Product Design & Figma">TRK-03: Product Design & Figma</option>
                   <option value="TRK-04: Digital Marketing & SEO">TRK-04: Digital Marketing & SEO</option>
-                  <option value="TRK-05: Video Making & Ads">TRK-05: Video Making & Ads</option>
+                  <option value="TRK-05: Video Ads & Media">TRK-05: Video Ads & Media</option>
                   <option value="TRK-06: Mobile App Dev (React Native)">TRK-06: Mobile App Dev (React Native)</option>
                   <option value="CUSTOM">Custom Track / Other...</option>
                 </select>
@@ -343,7 +345,7 @@ export default function PostInternshipRolePage() {
                   <input
                     type="text"
                     required
-                    placeholder="Enter custom track name (e.g. AI Prompt Engineering & Automation)"
+                    placeholder="Enter custom track name..."
                     value={customTrack}
                     onChange={(e) => setCustomTrack(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-purple-50/50 border border-purple-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c] text-xs"
@@ -354,7 +356,7 @@ export default function PostInternshipRolePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="block text-slate-700 font-bold">Monthly Stipend (NGN)</label>
+                <label className="block text-slate-700 font-bold">Monthly Retainer (NGN)</label>
                 <input
                   type="number"
                   required
@@ -364,6 +366,19 @@ export default function PostInternshipRolePage() {
                   onChange={(e) => setRoleData({ ...roleData, stipend: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-slate-700 font-bold">Target Trial Tier</label>
+                <select
+                  value={roleData.trialTier}
+                  onChange={(e) => setRoleData({ ...roleData, trialTier: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c] cursor-pointer"
+                >
+                  <option value="Tier 1: Foundation (2-Week Trial)">Tier 1: Foundation (2-Week Trial)</option>
+                  <option value="Tier 2: Acceleration (1-Week Fast-Track)">Tier 2: Acceleration (1-Week Fast-Track)</option>
+                  <option value="Tier 3: Nexus Pro (Zero Trial / Direct Retainer)">Tier 3: Nexus Pro (Zero Trial / Direct Retainer)</option>
+                </select>
               </div>
 
               <div className="space-y-1">
@@ -378,25 +393,25 @@ export default function PostInternshipRolePage() {
                   <option value="Onsite">Onsite</option>
                 </select>
               </div>
+            </div>
 
-              <div className="space-y-1">
-                <label className="block text-slate-700 font-bold">Location / Hub</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Lagos, Hybrid or Remote"
-                  value={roleData.location}
-                  onChange={(e) => setRoleData({ ...roleData, location: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
-                />
-              </div>
+            <div className="space-y-1">
+              <label className="block text-slate-700 font-bold">Location / Hub</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Lagos, Abuja, or Fully Remote"
+                value={roleData.location}
+                onChange={(e) => setRoleData({ ...roleData, location: e.target.value })}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
+              />
             </div>
 
             <div className="space-y-1">
               <label className="block text-slate-700 font-bold">Key Skills (comma separated)</label>
               <input
                 type="text"
-                placeholder="Next.js, Tailwind, Supabase, TypeScript, GitHub"
+                placeholder="Next.js, TypeScript, Tailwind, Git, PostgreSQL"
                 value={roleData.requirements}
                 onChange={(e) => setRoleData({ ...roleData, requirements: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
@@ -408,20 +423,19 @@ export default function PostInternshipRolePage() {
               <textarea
                 rows={3}
                 required
-                placeholder="Detail what the apprentice will build, sprint expectations, and reporting structure..."
+                placeholder="Detail what the candidate will build, weekly sprint deliverable expectations, and reporting structure..."
                 value={roleData.description}
                 onChange={(e) => setRoleData({ ...roleData, description: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
               />
             </div>
 
-            {/* Escrow Surcharge Calculation Box */}
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5 font-mono text-xs">
               <span className="font-sans font-bold text-slate-700 block text-[11px]">
                 Platform Facilitation Escrow Breakdown
               </span>
               <div className="flex justify-between text-slate-500">
-                <span>Monthly Apprentice Stipend:</span>
+                <span>Monthly Retainer:</span>
                 <span className="font-bold text-slate-900">₦{baseStipend.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-slate-500">
@@ -429,7 +443,7 @@ export default function PostInternshipRolePage() {
                 <span className="font-bold text-[#512d7c]">₦{platformFee.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-emerald-700 font-black pt-1 border-t border-slate-200">
-                <span>Required Monthly Escrow Commitment:</span>
+                <span>Total Monthly Escrow Commitment:</span>
                 <span>₦{totalEscrow.toLocaleString()}</span>
               </div>
             </div>
@@ -439,7 +453,7 @@ export default function PostInternshipRolePage() {
               disabled={submitting}
               className="w-full py-3 bg-[#512d7c] hover:bg-[#3e215f] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
             >
-              {submitting ? 'Publishing Role...' : 'Publish Internship Role to Talent Pool ➔'}
+              {submitting ? 'Publishing Role...' : 'Publish Job Offer Role to Talent Pool ➔'}
             </button>
           </form>
         </div>
@@ -477,7 +491,7 @@ export default function PostInternshipRolePage() {
             <Briefcase className="w-10 h-10 text-slate-300 mx-auto" />
             <h3 className="font-extrabold text-sm text-slate-800">No Job Postings Yet</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              You haven't posted any apprenticeship roles. Click <strong>Post New Role</strong> above to publish your first opening.
+              You haven't posted any Job offer roles. Click <strong>Post New Role</strong> above to publish your first opening.
             </p>
           </div>
         ) : (
@@ -500,6 +514,9 @@ export default function PostInternshipRolePage() {
                       }`}
                     >
                       {job.status}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-[#512d7c] bg-purple-50 px-2 py-0.5 rounded">
+                      {job.trialTier.split(':')[0]}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
                       Posted {job.datePosted}

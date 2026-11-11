@@ -57,7 +57,7 @@ export default function StartupSupportPage() {
             <h1 className="text-xl font-black text-slate-900">Support & Dispute Desk</h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Tripartite mediation between startup leadership, apprentices, and platform administration.
+            Tripartite mediation between startup leadership, experts, and platform administration.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function StartupSupportPage() {
           <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
           <h3 className="font-extrabold text-sm text-slate-900">Zero Active Disputes</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            All apprentice placements and sprint milestones are running normally. Open a case if you need escrow arbitration.
+            All expert placements and sprint milestones are running normally. Open a case if you need escrow arbitration.
           </p>
         </div>
       ) : (

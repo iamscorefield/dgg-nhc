@@ -173,7 +173,7 @@ export default function InternDashboardOverview() {
       <div className="h-96 flex items-center justify-center font-mono text-xs text-[#512d7c]">
         <RefreshCw className="w-5 h-5 animate-spin mr-2" />
         <span className="font-bold tracking-widest uppercase">
-          INITIALIZING APPRENTICE OPERATIONS DESK...
+          INITIALIZING TALENT EXPERT OPERATIONS DESK...
         </span>
       </div>
     );
@@ -186,7 +186,7 @@ export default function InternDashboardOverview() {
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-[#f2b42c]" />
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-200">
-              Verified Apprenticeship Workspace
+              Verified Talent Expert Workspace
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
@@ -233,7 +233,7 @@ export default function InternDashboardOverview() {
             <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#512d7c]" />
           </div>
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">Active Sprint Runway</span>
+            <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block">Active Milestone/Sprint</span>
             <h3 className="text-sm font-black text-slate-900">Sprint Delivery Desk</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">{metrics.submittedMilestonesCount} sprint deliverables pushed.</p>
           </div>
@@ -349,7 +349,7 @@ export default function InternDashboardOverview() {
                 <span>Monetize While Building Sprints</span>
               </h4>
               <p className="text-[11px] text-slate-600">
-                Share verified affiliate deep-links across your network to receive direct commissions into your student wallet.
+                Share verified affiliate deep-links across your network to receive direct commissions into your wallet.
               </p>
             </div>
             <Link

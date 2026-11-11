@@ -249,7 +249,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
           <span>{currentStep === 1 ? 'Category' : 'Back'}</span>
         </button>
         <span className="text-[10px] font-mono-tech font-bold uppercase tracking-wider text-purple-300 bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-500/30">
-          Step {currentStep} of {totalSteps}: Intern Profile
+          Step {currentStep} of {totalSteps}: Talent Expert Profile
         </span>
       </div>
 
@@ -333,7 +333,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
         {currentStep === 2 && (
           <div className="space-y-3 animate-fadeIn">
             <div>
-              <label className="block text-white/80 font-bold mb-1">Corporate / Campus Email *</label>
+              <label className="block text-white/80 font-bold mb-1">Corporate Email *</label>
               <input
                 required
                 type="email"

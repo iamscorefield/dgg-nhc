@@ -35,6 +35,7 @@ interface ApprenticeRecord {
   subdomain: string;
   certHash: string | null;
   tier: string;
+  tierLevel: 'TIER_1' | 'TIER_2' | 'TIER_3';
   status: 'Verified LMS' | 'Pending Audit' | 'Suspended';
   enrolledDate: string;
   sprintAttendance: string;
@@ -43,6 +44,47 @@ interface ApprenticeRecord {
     pipelineStage: string;
     stipend: number;
   } | null;
+}
+
+const TIER_OPTIONS = [
+  {
+    id: 'TIER_3',
+    label: 'Tier 3: Nexus Pro (Zero Trial / Direct Retainer)',
+    shortLabel: 'Nexus Pro (0-Wk)',
+    badgeColor: 'bg-purple-50 text-[#512d7c] border-purple-200'
+  },
+  {
+    id: 'TIER_2',
+    label: 'Tier 2: Acceleration (1-Week Fast-Track)',
+    shortLabel: 'Acceleration (1-Wk)',
+    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200'
+  },
+  {
+    id: 'TIER_1',
+    label: 'Tier 1: Foundation (2-Week Trial)',
+    shortLabel: 'Foundation (2-Wk)',
+    badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200'
+  },
+];
+
+function normalizeTier(rawTier: string = ''): { tier: string; tierLevel: 'TIER_1' | 'TIER_2' | 'TIER_3' } {
+  const lower = rawTier.toLowerCase();
+  if (lower.includes('tier 3') || lower.includes('pro') || lower.includes('zero trial') || lower.includes('fellow')) {
+    return {
+      tier: 'Tier 3: Nexus Pro (Zero Trial / Direct Retainer)',
+      tierLevel: 'TIER_3'
+    };
+  }
+  if (lower.includes('tier 2') || lower.includes('acceleration') || lower.includes('1-week') || lower.includes('associate') || lower.includes('2-month')) {
+    return {
+      tier: 'Tier 2: Acceleration (1-Week Fast-Track)',
+      tierLevel: 'TIER_2'
+    };
+  }
+  return {
+    tier: 'Tier 1: Foundation (2-Week Trial)',
+    tierLevel: 'TIER_1'
+  };
 }
 
 export default function AdminInternsVaultPage() {
@@ -132,6 +174,8 @@ export default function AdminInternsVaultPage() {
             }
           : null;
 
+        const { tier, tierLevel } = normalizeTier(i.tier);
+
         return {
           id: i.id,
           nhcId: i.nhc_id || 'DGG-NHC-2026-UNASSIGNED',
@@ -141,7 +185,8 @@ export default function AdminInternsVaultPage() {
           institution: i.institution || 'Academic Partner Campus',
           subdomain: i.subdomain_handle || 'apprentice',
           certHash: i.verified_cert_id || null,
-          tier: i.tier || 'Associate (Intermediate: 2-month trial)',
+          tier,
+          tierLevel,
           status: i.verified_cert_id ? 'Verified LMS' : 'Pending Audit',
           sprintAttendance: i.sprint_attendance_score || '100%',
           enrolledDate: i.created_at
@@ -239,11 +284,11 @@ export default function AdminInternsVaultPage() {
     setTimeout(() => setActionNotice(null), 3000);
   };
 
-  const handleUpdateTier = async (internId: string, newTier: string) => {
+  const handleUpdateTier = async (internId: string, newTierString: string) => {
     setUpdatingTier(true);
     const { error } = await supabase
       .from('intern_profiles')
-      .update({ tier: newTier })
+      .update({ tier: newTierString })
       .eq('id', internId);
 
     setUpdatingTier(false);
@@ -253,15 +298,17 @@ export default function AdminInternsVaultPage() {
       return;
     }
 
+    const { tier, tierLevel } = normalizeTier(newTierString);
+
     setApprentices((prev) =>
-      prev.map((i) => (i.id === internId ? { ...i, tier: newTier } : i))
+      prev.map((i) => (i.id === internId ? { ...i, tier, tierLevel } : i))
     );
 
     if (selectedIntern && selectedIntern.id === internId) {
-      setSelectedIntern({ ...selectedIntern, tier: newTier });
+      setSelectedIntern({ ...selectedIntern, tier, tierLevel });
     }
 
-    setActionNotice(`Updated candidate tier to "${newTier}"`);
+    setActionNotice(`Updated candidate tier to "${tier}"`);
     setTimeout(() => setActionNotice(null), 3000);
   };
 
@@ -298,7 +345,7 @@ export default function AdminInternsVaultPage() {
     const matchesTrack =
       trackFilter === 'ALL' || a.track.toLowerCase().includes(trackFilter.toLowerCase());
     const matchesTier =
-      tierFilter === 'ALL' || a.tier === tierFilter;
+      tierFilter === 'ALL' || a.tierLevel === tierFilter || a.tier === tierFilter;
     const matchesSearch =
       a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.nhcId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -320,21 +367,21 @@ export default function AdminInternsVaultPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans p-2 sm:p-4">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-[#0f041d] via-[#3a1d5a] to-[#ff7a00] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="space-y-2 relative z-10 max-w-2xl">
           <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-[#f2b42c]" />
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-200">
-              Identity & Credential Clearing
+              Identity & Credential Clearing // Agile 3-Tier System
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             Apprentice Vault & NHC Credential Registry
           </h1>
           <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-            Direct root control over tamper-proof student passes, LMS certificate hashes, candidate incubation tiers, and subdomain resolution.
+            Direct root control over student passes, LMS certificate hashes, candidate progression tiers (Tier 1: 2-Wk, Tier 2: 1-Wk, Tier 3: Pro), and subdomain verification.
           </p>
         </div>
 
@@ -357,7 +404,7 @@ export default function AdminInternsVaultPage() {
       </div>
 
       {actionNotice && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2">
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{actionNotice}</span>
         </div>
@@ -395,10 +442,10 @@ export default function AdminInternsVaultPage() {
             onChange={(e) => setTierFilter(e.target.value)}
             className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
           >
-            <option value="ALL">All Incubation Tiers</option>
-            <option value="Fellow (Pro: 1-month fast-track)">Fellow (1-Mo Trial)</option>
-            <option value="Associate (Intermediate: 2-month trial)">Associate (2-Mo Trial)</option>
-            <option value="Apprentice (Newbie: 3-month trial)">Apprentice (3-Mo Trial)</option>
+            <option value="ALL">All Progression Tiers</option>
+            <option value="TIER_1">Tier 1: Foundation (2-Wk)</option>
+            <option value="TIER_2">Tier 2: Acceleration (1-Wk)</option>
+            <option value="TIER_3">Tier 3: Nexus Pro (Zero Trial)</option>
           </select>
         </div>
       </div>
@@ -411,7 +458,7 @@ export default function AdminInternsVaultPage() {
               Verified Apprentice Identity Master Ledger
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Click any candidate row to trigger the Pass Inspector and adjust evaluated incubation tiers.
+              Click any candidate row to inspect security passes and adjust performance tiers.
             </p>
           </div>
           <span className="text-xs font-mono text-slate-400 font-bold">
@@ -426,7 +473,7 @@ export default function AdminInternsVaultPage() {
                 <th className="pb-3.5">NHC ID</th>
                 <th className="pb-3.5">APPRENTICE NAME</th>
                 <th className="pb-3.5">TRACK & CAMPUS</th>
-                <th className="pb-3.5">INCUBATION TIER</th>
+                <th className="pb-3.5">PROGRESSION TIER</th>
                 <th className="pb-3.5">ATTENDANCE</th>
                 <th className="pb-3.5">PLACEMENT STATE</th>
                 <th className="pb-3.5">ACCREDITATION</th>
@@ -461,11 +508,11 @@ export default function AdminInternsVaultPage() {
                     <td className="py-4">
                       <span
                         className={`text-[9px] font-mono font-bold px-2.5 py-1 rounded-full border inline-block ${
-                          intern.tier.includes('Fellow')
+                          intern.tierLevel === 'TIER_3'
                             ? 'bg-purple-50 text-[#512d7c] border-purple-200'
-                            : intern.tier.includes('Associate')
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : intern.tierLevel === 'TIER_2'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                         }`}
                       >
                         {intern.tier.split('(')[0].trim()}
@@ -624,8 +671,8 @@ export default function AdminInternsVaultPage() {
                   </span>
                   <div className="p-3 bg-white/5 rounded-xl border border-white/10 space-y-1 font-mono text-[10px] text-white/80">
                     <p><span className="text-white/40">Cert Hash:</span> {selectedIntern.certHash || 'NOT_ISSUED'}</p>
-                    <p><span className="text-white/40">Tier Status:</span> {selectedIntern.tier}</p>
-                    <p><span className="text-white/40">Attendance Badge:</span> {selectedIntern.sprintAttendance}</p>
+                    <p><span className="text-white/40">Progression Tier:</span> {selectedIntern.tier}</p>
+                    <p><span className="text-white/40">Attendance Score:</span> {selectedIntern.sprintAttendance}</p>
                     <p><span className="text-white/40">Active Placement:</span> {selectedIntern.activePlacement ? `${selectedIntern.activePlacement.companyName} (₦${selectedIntern.activePlacement.stipend.toLocaleString()})` : 'None'}</p>
                     <p><span className="text-white/40">Public Slug:</span> /portfolio/{selectedIntern.subdomain}</p>
                     <p><span className="text-white/40">Enrolled:</span> {selectedIntern.enrolledDate}</p>
@@ -644,27 +691,23 @@ export default function AdminInternsVaultPage() {
             <div className="space-y-1.5 pt-1">
               <label className="block text-xs font-bold text-slate-700 flex items-center space-x-1">
                 <Award className="w-3.5 h-3.5 text-[#512d7c]" />
-                <span>Modify Official Incubation Tier</span>
+                <span>Modify Official Progression Tier</span>
               </label>
               <div className="grid grid-cols-1 gap-1.5">
-                {[
-                  'Fellow (Pro: 1-month fast-track)',
-                  'Associate (Intermediate: 2-month trial)',
-                  'Apprentice (Newbie: 3-month trial)',
-                ].map((tierName) => (
+                {TIER_OPTIONS.map((t) => (
                   <button
-                    key={tierName}
+                    key={t.id}
                     type="button"
                     disabled={updatingTier}
-                    onClick={() => handleUpdateTier(selectedIntern.id, tierName)}
-                    className={`w-full py-2 px-3.5 rounded-xl text-xs font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
-                      selectedIntern.tier === tierName
+                    onClick={() => handleUpdateTier(selectedIntern.id, t.label)}
+                    className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold border transition-all text-left flex items-center justify-between cursor-pointer ${
+                      selectedIntern.tier === t.label || selectedIntern.tierLevel === t.id
                         ? 'bg-[#512d7c] text-white border-[#512d7c] shadow-sm'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    <span>{tierName}</span>
-                    {selectedIntern.tier === tierName && (
+                    <span>{t.label}</span>
+                    {(selectedIntern.tier === t.label || selectedIntern.tierLevel === t.id) && (
                       <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />
                     )}
                   </button>
