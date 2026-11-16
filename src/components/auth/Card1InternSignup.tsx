@@ -18,6 +18,25 @@ const DEFAULT_TRACKS = [
   'TRK-07: Digital Monetization & Affiliate',
 ];
 
+const POPULAR_INSTITUTIONS = [
+  'University of Lagos (UNILAG)',
+  'University of Ibadan (UI)',
+  'Obafemi Awolowo University (OAU)',
+  'Lagos State University (LASU)',
+  'University of Ilorin (UNILORIN)',
+  'Federal University of Agriculture, Abeokuta (FUNAAB)',
+  'University of Nigeria, Nsukka (UNN)',
+  'Ahmadu Bello University (ABU)',
+  'University of Benin (UNIBEN)',
+  'Federal University of Technology, Akure (FUTA)',
+  'Covenant University',
+  'Babcock University',
+  'Yaba College of Technology (YABATECH)',
+  'Lagos State University of Science and Technology (LASUSTECH)',
+  'University of Jos (UNIJOS)',
+  'University of Port Harcourt (UNIPORT)',
+];
+
 const POPULAR_STATES = [
   'Lagos State',
   'Abuja (FCT)',
@@ -40,6 +59,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
   const [verifyFeedback, setVerifyFeedback] = useState<string | null>(null);
 
   // Custom Selection Toggles
+  const [isCustomInstitution, setIsCustomInstitution] = useState(false);
   const [isCustomTrack, setIsCustomTrack] = useState(false);
   const [isCustomState, setIsCustomState] = useState(false);
 
@@ -59,7 +79,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
     email: '',
     phone: '',
     educationLevel: 'Undergraduate (100 - 500 Level)',
-    institution: '',
+    institution: 'University of Lagos (UNILAG)',
     discipline: '',
     experienceYears: '0 (Fresher / Entry Level)',
     specializationTrack: 'TRK-01: Full Stack Development',
@@ -89,19 +109,24 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
         setIsVerified(true);
 
         const verifiedTrack = data.record.track || formData.specializationTrack;
-        if (!DEFAULT_TRACKS.includes(verifiedTrack)) {
+        if (verifiedTrack && !DEFAULT_TRACKS.includes(verifiedTrack)) {
           setIsCustomTrack(true);
+        }
+
+        const verifiedSchool = data.record.institution || formData.institution;
+        if (verifiedSchool && !POPULAR_INSTITUTIONS.includes(verifiedSchool)) {
+          setIsCustomInstitution(true);
         }
 
         setFormData((prev) => ({
           ...prev,
           firstName: data.record.firstName || prev.firstName,
           lastName: data.record.lastName || prev.lastName,
-          institution: data.record.institution || prev.institution,
+          institution: verifiedSchool,
           discipline: data.record.discipline || prev.discipline,
           specializationTrack: verifiedTrack,
         }));
-        setVerifyFeedback('✓ ID verified! Name and academic fields auto-locked.');
+        setVerifyFeedback('✓ ID verified! Details pre-filled (you can still adjust them if needed).');
       } else {
         setIsVerified(false);
         setVerifyFeedback(data.message || 'ID not located. You can enter details manually.');
@@ -123,9 +148,15 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
       alert('Please provide your email and phone number.');
       return;
     }
-    if (currentStep === 3 && (!formData.institution.trim() || !formData.discipline.trim())) {
-      alert('Please complete your academic institutional details.');
-      return;
+    if (currentStep === 3) {
+      if (!formData.institution.trim()) {
+        alert('Please select or enter your School / Institution.');
+        return;
+      }
+      if (!formData.specializationTrack.trim()) {
+        alert('Please select or enter your Specialization Track.');
+        return;
+      }
     }
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
@@ -160,7 +191,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
           phone: formData.phone,
           educationLevel: formData.educationLevel,
           institution: formData.institution,
-          discipline: formData.discipline,
+          discipline: formData.discipline || formData.specializationTrack,
           workExperience: formData.experienceYears,
           specializationTrack: formData.specializationTrack,
           stateOfResidence: formData.stateOfResidence,
@@ -255,7 +286,7 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
 
       {/* Progress Line */}
       <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-[#f2b42c] transition-all duration-300"
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
         />
@@ -306,11 +337,10 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
                 <input
                   required
                   type="text"
-                  readOnly={isVerified}
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   placeholder="Amina"
-                  className={`w-full p-2.5 border rounded-xl font-medium text-white placeholder:text-white/40 ${isVerified ? 'bg-white/5 border-white/20 text-white/70' : 'bg-white/12 border-white/10'}`}
+                  className="w-full p-2.5 bg-white/12 border border-white/10 rounded-xl font-medium text-white placeholder:text-white/40"
                 />
               </div>
               <div>
@@ -318,11 +348,10 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
                 <input
                   required
                   type="text"
-                  readOnly={isVerified}
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   placeholder="Bello"
-                  className={`w-full p-2.5 border rounded-xl font-medium text-white placeholder:text-white/40 ${isVerified ? 'bg-white/5 border-white/20 text-white/70' : 'bg-white/12 border-white/10'}`}
+                  className="w-full p-2.5 bg-white/12 border border-white/10 rounded-xl font-medium text-white placeholder:text-white/40"
                 />
               </div>
             </div>
@@ -375,24 +404,48 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
                   <option className="bg-[#07020d] text-white">Postgraduate / Professional Master</option>
                 </select>
               </div>
+
               <div>
                 <label className="block text-white/80 font-bold mb-1">School / Institution *</label>
-                <input
-                  required
-                  type="text"
-                  readOnly={isVerified}
-                  value={formData.institution}
-                  onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                  placeholder="e.g. University of Jos"
-                  className={`w-full p-2.5 border rounded-xl font-medium text-white placeholder:text-white/40 ${isVerified ? 'bg-white/5 border-white/20 text-white/70' : 'bg-white/12 border-white/10'}`}
-                />
+                <select
+                  value={isCustomInstitution ? 'OTHER' : formData.institution}
+                  onChange={(e) => {
+                    if (e.target.value === 'OTHER') {
+                      setIsCustomInstitution(true);
+                      setFormData({ ...formData, institution: '' });
+                    } else {
+                      setIsCustomInstitution(false);
+                      setFormData({ ...formData, institution: e.target.value });
+                    }
+                  }}
+                  className="w-full p-2.5 bg-[#0d0614] border border-white/10 rounded-xl font-bold text-white cursor-pointer"
+                >
+                  {POPULAR_INSTITUTIONS.map((inst) => (
+                    <option key={inst} value={inst} className="bg-[#07020d] text-white">
+                      {inst}
+                    </option>
+                  ))}
+                  <option value="OTHER" className="bg-[#07020d] text-[#f2b42c]">
+                    Other (Type School Manually)...
+                  </option>
+                </select>
+
+                {isCustomInstitution && (
+                  <input
+                    required
+                    type="text"
+                    value={formData.institution}
+                    onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                    placeholder="Enter your school / institution name"
+                    className="w-full mt-2 p-2.5 bg-white/12 border border-[#f2b42c]/50 rounded-xl font-medium text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[#f2b42c]"
+                  />
+                )}
               </div>
             </div>
 
             <div>
               <label className="block text-white/80 font-bold mb-1">Specialization Track *</label>
               <select
-                disabled={isVerified}
                 value={isCustomTrack ? 'CUSTOM' : formData.specializationTrack}
                 onChange={(e) => {
                   if (e.target.value === 'CUSTOM') {
@@ -406,10 +459,25 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
                 className="w-full p-2.5 bg-[#0d0614] border border-white/10 rounded-xl font-bold text-white cursor-pointer"
               >
                 {DEFAULT_TRACKS.map((t) => (
-                  <option key={t} value={t} className="bg-[#07020d] text-white">{t}</option>
+                  <option key={t} value={t} className="bg-[#07020d] text-white">
+                    {t}
+                  </option>
                 ))}
-                <option value="CUSTOM" className="bg-[#07020d] text-white">Other (Specify Custom Track)...</option>
+                <option value="CUSTOM" className="bg-[#07020d] text-[#f2b42c]">
+                  Other (Specify Custom Track)...
+                </option>
               </select>
+
+              {isCustomTrack && (
+                <input
+                  required
+                  type="text"
+                  value={formData.specializationTrack}
+                  onChange={(e) => setFormData({ ...formData, specializationTrack: e.target.value })}
+                  placeholder="Enter your custom specialization track"
+                  className="w-full mt-2 p-2.5 bg-white/12 border border-[#f2b42c]/50 rounded-xl font-medium text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[#f2b42c]"
+                />
+              )}
             </div>
           </div>
         )}
@@ -433,10 +501,25 @@ export default function Card1InternSignup({ onBack, onSuccess }: Card1InternSign
                 className="w-full p-2.5 bg-[#0d0614] border border-white/10 rounded-xl font-bold text-white cursor-pointer"
               >
                 {POPULAR_STATES.map((st) => (
-                  <option key={st} value={st} className="bg-[#07020d] text-white">{st}</option>
+                  <option key={st} value={st} className="bg-[#07020d] text-white">
+                    {st}
+                  </option>
                 ))}
-                <option value="OTHER" className="bg-[#07020d] text-white">Other (Specify Custom Region)...</option>
+                <option value="OTHER" className="bg-[#07020d] text-[#f2b42c]">
+                  Other (Specify Custom Region)...
+                </option>
               </select>
+
+              {isCustomState && (
+                <input
+                  required
+                  type="text"
+                  value={formData.stateOfResidence}
+                  onChange={(e) => setFormData({ ...formData, stateOfResidence: e.target.value })}
+                  placeholder="Enter your state / region"
+                  className="w-full mt-2 p-2.5 bg-white/12 border border-[#f2b42c]/50 rounded-xl font-medium text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-[#f2b42c]"
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
