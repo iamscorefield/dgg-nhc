@@ -4,24 +4,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import {
   ShieldCheck,
-  Award,
   Sparkles,
   School,
   FolderGit2,
   Star,
-  ExternalLink,
   Plus,
   Trash2,
   CheckCircle2,
   Save,
   Loader2,
   Code2,
-  Layers,
   Edit3,
   RotateCw,
   Globe,
   UploadCloud,
-  Check,
   AlertCircle,
   BookOpen,
   Camera,
@@ -78,6 +74,8 @@ const DEFAULT_TRACKS = [
   'TRK-03: Growth Marketing & SEO',
   'TRK-04: Product Design & UI/UX',
   'TRK-05: Video Ads & Media',
+  'TRK-06: Virtual Assistance',
+  'TRK-07: Digital Monetization & Affiliate',
 ];
 
 const POPULAR_STATES = [
@@ -85,17 +83,32 @@ const POPULAR_STATES = [
   'Abuja (FCT)',
   'Rivers State (Port Harcourt)',
   'Oyo State (Ibadan)',
+  'Ogun State (Abeokuta)',
   'Enugu State',
   'Plateau State (Jos)',
   'Kaduna State',
   'Remote / Global',
 ];
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
+
+function formatAgileTier(rawTier: string = ''): string {
+  const lower = rawTier.toLowerCase();
+  if (lower.includes('tier 3') || lower.includes('pro') || lower.includes('zero trial') || lower.includes('fellow')) {
+    return 'Tier 3: Nexus Pro (Zero Trial / Direct Retainer)';
+  }
+  if (lower.includes('tier 2') || lower.includes('acceleration') || lower.includes('1-week') || lower.includes('associate') || lower.includes('2-month')) {
+    return 'Tier 2: Acceleration (1-Week Fast-Track)';
+  }
+  return 'Tier 1: Foundation (2-Week Trial)';
+}
+
 export default function InternProfileManagementPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [statusNotice, setStatusNotice] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
 
@@ -117,7 +130,7 @@ export default function InternProfileManagementPage() {
   const [isCustomTrack, setIsCustomTrack] = useState(false);
   const [stateOfResidence, setStateOfResidence] = useState('Lagos State');
   const [isCustomState, setIsCustomState] = useState(false);
-  const [tier, setTier] = useState('Associate (Intermediate: 2-month trial)');
+  const [tier, setTier] = useState('Tier 1: Foundation (2-Week Trial)');
   const [ongoingWork, setOngoingWork] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -135,31 +148,10 @@ export default function InternProfileManagementPage() {
   const [headline, setHeadline] = useState('');
   const [headlineDescription, setHeadlineDescription] = useState('');
 
-  // Technical Specialization Cards & Projects
+  // Technical Specialization Cards, Projects & Reviews
   const [skills, setSkills] = useState<SkillCard[]>([]);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
-
-  // Enterprise Reviews
-  const [reviews] = useState<ReviewItem[]>([
-    {
-      id: 'rev-1',
-      authorName: 'AfriPay Fintech Hub Ltd.',
-      authorRole: 'Enterprise Startup Supervisor',
-      rating: 5,
-      title: 'Flawless Execution & High Reliability',
-      comment: 'Consistently punctual, executes sprint deliverables ahead of schedule, and maintains excellent communication.',
-      date: 'Aug 28, 2026',
-    },
-    {
-      id: 'rev-2',
-      authorName: 'DGG Master Operations Desk',
-      authorRole: 'Incubator Academic Board',
-      rating: 5,
-      title: 'Exemplary Sprint Discipline',
-      comment: 'Maintained strong daily clock-in consistency throughout all incubator modules.',
-      date: 'Aug 15, 2026',
-    },
-  ]);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
 
   // Skill Modal
   const [showSkillModal, setShowSkillModal] = useState(false);
@@ -173,42 +165,70 @@ export default function InternProfileManagementPage() {
   const [newProjDesc, setNewProjDesc] = useState('');
   const [newProjDemo, setNewProjDemo] = useState('');
   const [newProjGithub, setNewProjGithub] = useState('');
-  const [newProjTags, setNewProjTags] = useState('Growth Marketing, SEO');
+  const [newProjTags, setNewProjTags] = useState('Next.js, TypeScript');
+
+  const notifySuccess = (msg: string) => {
+    setErrorMessage(null);
+    setStatusNotice(msg);
+    setTimeout(() => setStatusNotice(null), 4000);
+  };
 
   useEffect(() => {
     async function loadData() {
-      const { data: authData } = await supabase.auth.getUser();
-      if (authData?.user) {
-        setUserEmail(authData.user.email || '');
-        // Real check: evaluates true only if email_confirmed_at is populated
-        setIsEmailVerified(Boolean(authData.user.email_confirmed_at));
+      try {
+        const { data: authData, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !authData?.user) {
+          setLoading(false);
+          return;
+        }
 
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, phone, avatar_url')
-          .eq('id', authData.user.id)
-          .maybeSingle();
+        const user = authData.user;
+        setUserEmail(user.email || '');
+        setIsEmailVerified(Boolean(user.email_confirmed_at));
 
-        const { data: intern } = await supabase
-          .from('intern_profiles')
-          .select(`
-            nhc_id,
-            tier,
-            specialization_track,
-            state_of_residence,
-            institution,
-            discipline,
-            bio,
-            ongoing_assignments,
-            verified_cert_id,
-            headline,
-            headline_description,
-            skills_specialization,
-            projects,
-            social_links
-          `)
-          .eq('id', authData.user.id)
-          .maybeSingle();
+        const [
+          { data: prof },
+          { data: intern },
+          { data: evaluations }
+        ] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('first_name, last_name, phone, avatar_url')
+            .eq('id', user.id)
+            .maybeSingle(),
+          supabase
+            .from('intern_profiles')
+            .select(`
+              nhc_id,
+              tier,
+              specialization_track,
+              state_of_residence,
+              institution,
+              discipline,
+              bio,
+              ongoing_assignments,
+              verified_cert_id,
+              headline,
+              headline_description,
+              skills_specialization,
+              projects,
+              social_links
+            `)
+            .eq('id', user.id)
+            .maybeSingle(),
+          supabase
+            .from('intern_performance_evaluations')
+            .select(`
+              id,
+              written_endorsement,
+              technical_score,
+              created_at,
+              profiles:startup_id ( first_name, last_name )
+            `)
+            .eq('intern_id', user.id)
+            .eq('is_public_on_dossier', true)
+            .order('created_at', { ascending: false })
+        ]);
 
         if (prof) {
           setFirstName(prof.first_name || '');
@@ -219,7 +239,7 @@ export default function InternProfileManagementPage() {
 
         if (intern) {
           setNhcId(intern.nhc_id || 'DGG-NHC-2026');
-          setTier(intern.tier || 'Associate (Intermediate: 2-month trial)');
+          setTier(formatAgileTier(intern.tier));
 
           const fetchedTrack = intern.specialization_track || 'TRK-01: Full Stack Development';
           setTrack(fetchedTrack);
@@ -269,8 +289,28 @@ export default function InternProfileManagementPage() {
             setVideoPitchUrl(intern.social_links.video_pitch || '');
           }
         }
+
+        if (evaluations && evaluations.length > 0) {
+          const mappedReviews: ReviewItem[] = evaluations.map((ev: any) => {
+            const evalProfile = Array.isArray(ev.profiles) ? ev.profiles[0] : ev.profiles;
+            return {
+              id: ev.id,
+              authorName: `${evalProfile?.first_name || 'Enterprise'} ${evalProfile?.last_name || 'Supervisor'}`.trim(),
+              authorRole: 'Verified Incubator Supervisor',
+              rating: Number(ev.technical_score) || 5,
+              title: 'Verified Sprint Endorsement',
+              comment: ev.written_endorsement || 'Demonstrated strong execution during active sprint.',
+              date: new Date(ev.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
+            };
+          });
+          setReviews(mappedReviews);
+        }
+      } catch (err: any) {
+        console.error('Error loading profile:', err);
+        setErrorMessage('Failed to load profile records. Please refresh the page.');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadData();
   }, []);
@@ -296,46 +336,84 @@ export default function InternProfileManagementPage() {
 
   const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Reset input value so selecting the same file again still triggers onChange
+    e.target.value = '';
     if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setErrorMessage('Invalid image format. Please upload a JPG, PNG, or WEBP file.');
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      setErrorMessage('Image file is too large. Maximum allowed size is 5MB.');
+      return;
+    }
 
     setUploadingPhoto(true);
     setErrorMessage(null);
 
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData?.user) {
-        throw new Error('Authentication expired. Please log in again.');
+      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      if (authErr || !authData?.user) {
+        throw new Error('Authentication session expired. Please sign in again.');
       }
 
-      const fileExt = file.name.split('.').pop();
-      const filePath = `avatar_${authData.user.id}_${Date.now()}.${fileExt}`;
+      const userId = authData.user.id;
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      // Path MUST start with userId/ to satisfy Supabase storage RLS policies
+      const filePath = `${userId}/avatar-${Date.now()}.${fileExt}`;
 
+      // 1. Upload new avatar to user's private folder inside 'avatars' bucket
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: true,
+        });
 
       if (uploadError) {
-        throw uploadError;
+        throw new Error(`Storage upload error: ${uploadError.message}`);
       }
 
+      // 2. Get public URL with cache-buster timestamp
       const { data: publicUrlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      const newAvatarUrl = publicUrlData.publicUrl;
+      const newAvatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
 
+      // 3. Upsert avatar_url into profiles table (safe even if profile row didn't exist yet)
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ avatar_url: newAvatarUrl })
-        .eq('id', authData.user.id);
+        .upsert(
+          {
+            id: userId,
+            email: authData.user.email,
+            first_name: firstName || 'Talent',
+            last_name: lastName || '',
+            avatar_url: newAvatarUrl,
+          },
+          { onConflict: 'id' }
+        );
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        throw new Error(`Database update error: ${profileError.message}`);
+      }
+
+      // 4. Clean up old avatar file from storage if one existed in this bucket
+      if (avatarUrl && avatarUrl.includes('/avatars/')) {
+        const oldStoragePath = avatarUrl.split('/avatars/')[1]?.split('?')[0];
+        if (oldStoragePath && oldStoragePath !== filePath) {
+          await supabase.storage.from('avatars').remove([oldStoragePath]);
+        }
+      }
 
       setAvatarUrl(newAvatarUrl);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      notifySuccess('Headshot uploaded and synced across your digital pass and directory profile!');
     } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to upload photo. Ensure avatars storage bucket exists.');
+      setErrorMessage(err.message || 'Failed to upload headshot. Please try again.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -345,64 +423,73 @@ export default function InternProfileManagementPage() {
     setSaving(true);
     setErrorMessage(null);
 
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData?.user) {
-      setErrorMessage('Session expired. Please log in again.');
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      if (authErr || !authData?.user) {
+        throw new Error('Session expired. Please log in again.');
+      }
+
+      const userId = authData.user.id;
+
+      // 1. Atomic upsert on profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: userId,
+            email: authData.user.email,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            phone: phone.trim(),
+            avatar_url: avatarUrl,
+          },
+          { onConflict: 'id' }
+        );
+
+      if (profileError) {
+        throw new Error(`Profile update failed: ${profileError.message}`);
+      }
+
+      const skillTagNames = skills.map((s) => s.title);
+
+      // 2. Atomic upsert on intern_profiles table
+      const { error: internError } = await supabase
+        .from('intern_profiles')
+        .upsert(
+          {
+            id: userId,
+            institution: institution.trim(),
+            discipline: discipline.trim(),
+            specialization_track: track.trim(),
+            state_of_residence: stateOfResidence.trim(),
+            bio: bio.trim(),
+            ongoing_assignments: ongoingWork.trim(),
+            headline: headline.trim(),
+            headline_description: headlineDescription.trim(),
+            skills: skillTagNames,
+            skills_specialization: skills,
+            projects: projects,
+            social_links: {
+              github: githubUrl.trim(),
+              linkedin: linkedinUrl.trim(),
+              twitter: twitterUrl.trim(),
+              website: websiteUrl.trim(),
+              video_pitch: videoPitchUrl.trim(),
+            },
+          },
+          { onConflict: 'id' }
+        );
+
+      if (internError) {
+        throw new Error(`Intern dossier update failed: ${internError.message}`);
+      }
+
+      notifySuccess('All profile details, campus, specialization track, location, and capstones saved!');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error saving profile changes.');
+    } finally {
       setSaving(false);
-      return;
     }
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        first_name: firstName,
-        last_name: lastName,
-        phone: phone,
-        avatar_url: avatarUrl,
-      })
-      .eq('id', authData.user.id);
-
-    if (profileError) {
-      setErrorMessage(`Profile table update failed: ${profileError.message}`);
-      setSaving(false);
-      return;
-    }
-
-    const skillTagNames = skills.map((s) => s.title);
-
-    const { error: internError } = await supabase
-      .from('intern_profiles')
-      .update({
-        institution: institution,
-        discipline: discipline,
-        specialization_track: track,
-        state_of_residence: stateOfResidence,
-        bio: bio,
-        ongoing_assignments: ongoingWork,
-        headline: headline,
-        headline_description: headlineDescription,
-        skills: skillTagNames,
-        skills_specialization: skills,
-        projects: projects,
-        social_links: {
-          github: githubUrl,
-          linkedin: linkedinUrl,
-          twitter: twitterUrl,
-          website: websiteUrl,
-          video_pitch: videoPitchUrl,
-        },
-      })
-      .eq('id', authData.user.id);
-
-    if (internError) {
-      setErrorMessage(`Intern database update failed: ${internError.message}`);
-      setSaving(false);
-      return;
-    }
-
-    setSaving(false);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3500);
   };
 
   const handleOpenAddSkill = () => {
@@ -458,18 +545,18 @@ export default function InternProfileManagementPage() {
       ...projects,
       {
         id: `p-${Date.now()}`,
-        title: newProjTitle,
-        description: newProjDesc,
-        demoUrl: newProjDemo,
-        githubUrl: newProjGithub,
-        tags: tagArray.length > 0 ? tagArray : ['Growth Marketing', 'SEO'],
+        title: newProjTitle.trim(),
+        description: newProjDesc.trim(),
+        demoUrl: newProjDemo.trim(),
+        githubUrl: newProjGithub.trim(),
+        tags: tagArray.length > 0 ? tagArray : ['Next.js', 'TypeScript'],
       },
     ]);
     setNewProjTitle('');
     setNewProjDesc('');
     setNewProjDemo('');
     setNewProjGithub('');
-    setNewProjTags('Growth Marketing, SEO');
+    setNewProjTags('Next.js, TypeScript');
     setShowProjectModal(false);
   };
 
@@ -493,7 +580,7 @@ export default function InternProfileManagementPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         className="hidden"
         onChange={handleAvatarFileSelect}
       />
@@ -519,7 +606,7 @@ export default function InternProfileManagementPage() {
           type="button"
           disabled={saving}
           onClick={handleSaveAll}
-          className="px-6 py-3.5 bg-[#f2b42c] hover:bg-amber-400 text-slate-900 font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer"
+          className="px-6 py-3.5 bg-[#f2b42c] hover:bg-amber-400 text-slate-900 font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer disabled:opacity-60"
         >
           {saving ? (
             <>
@@ -535,7 +622,7 @@ export default function InternProfileManagementPage() {
         </button>
       </div>
 
-      {/* EMAIL VERIFICATION STATUS & ACTION BANNER (CLEANED OF INTERNAL STACK NAMES) */}
+      {/* EMAIL VERIFICATION STATUS & ACTION BANNER */}
       <div className={`p-5 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-sans ${isEmailVerified ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}`}>
         <div className="flex items-center space-x-3.5">
           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${isEmailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
@@ -572,10 +659,10 @@ export default function InternProfileManagementPage() {
         </div>
       )}
 
-      {saveSuccess && (
+      {statusNotice && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center space-x-2 animate-in fade-in duration-300">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>All profile details, campus, custom track, location, and capstones successfully updated!</span>
+          <span>{statusNotice}</span>
         </div>
       )}
 
@@ -588,7 +675,6 @@ export default function InternProfileManagementPage() {
 
       {/* TOP SECTION: HOLOGRAPHIC DIGITAL PASS & PROFILE SETTINGS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
         {/* Left: Tamper-Proof Digital Pass Preview (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
@@ -634,7 +720,7 @@ export default function InternProfileManagementPage() {
 
                 <div className="flex items-center space-x-4">
                   <div
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => !uploadingPhoto && fileInputRef.current?.click()}
                     className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-purple-400/40 bg-[#250d3e] shrink-0 flex items-center justify-center font-black text-2xl text-white shadow-inner relative group cursor-pointer"
                     title="Click to Change Photo"
                   >
@@ -644,9 +730,9 @@ export default function InternProfileManagementPage() {
                       <span>{firstName[0] || 'A'}</span>
                     )}
 
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                    <div className={`absolute inset-0 bg-black/60 transition-opacity flex flex-col items-center justify-center text-white ${uploadingPhoto ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                       {uploadingPhoto ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin text-amber-300" />
                       ) : (
                         <>
                           <Camera className="w-5 h-5 mb-0.5 text-amber-300" />
@@ -666,18 +752,19 @@ export default function InternProfileManagementPage() {
                     </span>
                     <button
                       type="button"
+                      disabled={uploadingPhoto}
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-[10px] text-amber-300 hover:text-amber-200 underline font-mono flex items-center space-x-1 cursor-pointer pt-0.5"
+                      className="text-[10px] text-amber-300 hover:text-amber-200 underline font-mono flex items-center space-x-1 cursor-pointer pt-0.5 disabled:opacity-50"
                     >
                       <UploadCloud className="w-3 h-3" />
-                      <span>{uploadingPhoto ? 'Uploading...' : 'Upload Headshot'}</span>
+                      <span>{uploadingPhoto ? 'Uploading Headshot...' : 'Upload / Change Headshot'}</span>
                     </button>
                   </div>
                 </div>
 
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-0.5">
                   <span className="text-[8px] font-mono uppercase text-amber-300 font-bold block">
-                    ASSIGNED INCUBATION TIER & RUNWAY:
+                    ASSIGNED AGILE TIER & RUNWAY:
                   </span>
                   <span className="text-xs font-black text-white block">{tier}</span>
                 </div>
@@ -866,7 +953,7 @@ export default function InternProfileManagementPage() {
                   required
                   value={track}
                   onChange={(e) => setTrack(e.target.value)}
-                  placeholder="e.g. TRK-06: AI Automation Specialist"
+                  placeholder="e.g. TRK-08: AI Automation Specialist"
                   className="w-full mt-2 px-3.5 py-2 bg-white border border-[#512d7c] rounded-xl text-slate-900 font-bold focus:outline-none"
                 />
               )}
@@ -892,7 +979,7 @@ export default function InternProfileManagementPage() {
               rows={2}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Results-driven growth strategist..."
+              placeholder="Results-driven specialist..."
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
             />
           </div>
@@ -977,7 +1064,7 @@ export default function InternProfileManagementPage() {
               type="text"
               value={headline}
               onChange={(e) => setHeadline(e.target.value)}
-              placeholder="e.g. Growth Marketing Specialist & Live Brand Broadcaster"
+              placeholder="e.g. Full Stack Engineer & Cloud Systems Architect"
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#512d7c]"
             />
           </div>
@@ -1092,7 +1179,7 @@ export default function InternProfileManagementPage() {
               <span>Showcase Project Vault</span>
             </h2>
             <p className="text-[11px] text-slate-500">
-              Add your completed capstone builds. These automatically persist to your `projects` column and display on your public portfolio.
+              Add your completed capstone builds. These automatically persist to your registry and display on your public portfolio.
             </p>
           </div>
 
@@ -1163,27 +1250,33 @@ export default function InternProfileManagementPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {reviews.map((rev) => (
-            <div
-              key={rev.id}
-              className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-extrabold text-slate-900">{rev.title}</h3>
-                  <span className="text-[10px] text-slate-500 font-mono">{rev.authorName}</span>
+        {reviews.length === 0 ? (
+          <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-xs text-slate-400">
+            No verified enterprise endorsements recorded yet. Endorsements appear here once a supervisor reviews your sprint deliverables.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {reviews.map((rev) => (
+              <div
+                key={rev.id}
+                className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900">{rev.title}</h3>
+                    <span className="text-[10px] text-slate-500 font-mono">{rev.authorName}</span>
+                  </div>
+                  <div className="flex text-amber-400">{'★'.repeat(rev.rating)}</div>
                 </div>
-                <div className="flex text-amber-400">{'★'.repeat(rev.rating)}</div>
+                <p className="text-[11px] text-slate-600 italic leading-relaxed">"{rev.comment}"</p>
+                <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-[10px] font-mono text-slate-400">
+                  <span className="text-emerald-700 font-bold">&#10003; DGG VERIFIED CONTRACT</span>
+                  <span>{rev.date}</span>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-600 italic leading-relaxed">"{rev.comment}"</p>
-              <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-[10px] font-mono text-slate-400">
-                <span className="text-emerald-700 font-bold">&#10003; DGG VERIFIED CONTRACT</span>
-                <span>{rev.date}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* SKILL ADD / EDIT MODAL */}
@@ -1209,7 +1302,7 @@ export default function InternProfileManagementPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Local SEO & Map Pack"
+                  placeholder="e.g. Full Stack Architecture"
                   value={skillFormTitle}
                   onChange={(e) => setSkillFormTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none"
@@ -1269,7 +1362,7 @@ export default function InternProfileManagementPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. OmniChannel Social Distribution & Content Engine"
+                  placeholder="e.g. Multi-Tenant Operations Engine"
                   value={newProjTitle}
                   onChange={(e) => setNewProjTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none"
@@ -1281,7 +1374,7 @@ export default function InternProfileManagementPage() {
                 <textarea
                   rows={2}
                   required
-                  placeholder="Engineered viral content hooks and automated multi-platform scheduling..."
+                  placeholder="Engineered role-based access control and real-time analytics..."
                   value={newProjDesc}
                   onChange={(e) => setNewProjDesc(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none"
@@ -1303,7 +1396,7 @@ export default function InternProfileManagementPage() {
                 <label className="block text-slate-700 font-bold mb-1">Live Demo URL (Optional)</label>
                 <input
                   type="text"
-                  placeholder="https://social-engine.vercel.app"
+                  placeholder="https://project-demo.vercel.app"
                   value={newProjDemo}
                   onChange={(e) => setNewProjDemo(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:outline-none"
@@ -1314,7 +1407,7 @@ export default function InternProfileManagementPage() {
                 <label className="block text-slate-700 font-bold mb-1">Tags (Comma-separated)</label>
                 <input
                   type="text"
-                  placeholder="Social Media, Buffer, Meta Suite"
+                  placeholder="Next.js, TypeScript, Supabase"
                   value={newProjTags}
                   onChange={(e) => setNewProjTags(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:outline-none"
