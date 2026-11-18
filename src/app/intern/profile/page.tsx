@@ -135,6 +135,7 @@ export default function InternProfileManagementPage() {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [nhcId, setNhcId] = useState('DGG-NHC-2026');
+  const [subdomainHandle, setSubdomainHandle] = useState('');
   const [certId, setCertId] = useState('DGG-TN-2026');
 
   // Video Pitch & Social Links
@@ -200,6 +201,7 @@ export default function InternProfileManagementPage() {
             .from('intern_profiles')
             .select(`
               nhc_id,
+              subdomain_handle,
               tier,
               specialization_track,
               state_of_residence,
@@ -239,6 +241,7 @@ export default function InternProfileManagementPage() {
 
         if (intern) {
           setNhcId(intern.nhc_id || 'DGG-NHC-2026');
+          setSubdomainHandle(intern.subdomain_handle || '');
           setTier(formatAgileTier(intern.tier));
 
           const fetchedTrack = intern.specialization_track || 'TRK-01: Full Stack Development';
@@ -450,14 +453,40 @@ export default function InternProfileManagementPage() {
         throw new Error(`Profile update failed: ${profileError.message}`);
       }
 
+      // 2. Ensure required NOT NULL fields (nhc_id, subdomain_handle) are always present
+      const validNhcId =
+        nhcId && nhcId !== 'DGG-NHC-2026'
+          ? nhcId
+          : `DGG-NHC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const cleanSlugBase = `${firstName || 'talent'}-${lastName || 'expert'}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      const idSuffix = validNhcId.split('-').pop() || Math.floor(1000 + Math.random() * 9000);
+      const fallbackSubdomain = `${cleanSlugBase}-${idSuffix}`;
+
+      // Check existing intern_profiles row so we never overwrite an existing nhc_id or subdomain_handle
+      const { data: existingIntern } = await supabase
+        .from('intern_profiles')
+        .select('nhc_id, subdomain_handle')
+        .eq('id', userId)
+        .maybeSingle();
+
+      const finalNhcId = existingIntern?.nhc_id || validNhcId;
+      const finalSubdomain = existingIntern?.subdomain_handle || subdomainHandle || fallbackSubdomain;
+
       const skillTagNames = skills.map((s) => s.title);
 
-      // 2. Atomic upsert on intern_profiles table
+      // 3. Atomic upsert on intern_profiles table with all required columns
       const { error: internError } = await supabase
         .from('intern_profiles')
         .upsert(
           {
             id: userId,
+            nhc_id: finalNhcId,
+            subdomain_handle: finalSubdomain,
+            tier: tier,
             institution: institution.trim(),
             discipline: discipline.trim(),
             specialization_track: track.trim(),
@@ -484,6 +513,8 @@ export default function InternProfileManagementPage() {
         throw new Error(`Intern dossier update failed: ${internError.message}`);
       }
 
+      setNhcId(finalNhcId);
+      setSubdomainHandle(finalSubdomain);
       notifySuccess('All profile details, campus, specialization track, location, and capstones saved!');
     } catch (err: any) {
       setErrorMessage(err.message || 'Error saving profile changes.');
